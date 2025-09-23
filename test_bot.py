@@ -58,7 +58,7 @@ def test_strategy():
     print("\nTesting strategy...")
 
     try:
-        from strategy import SMAStrategy
+        from strategies import SMAStrategy
         import backtrader as bt
 
         # Create a simple test

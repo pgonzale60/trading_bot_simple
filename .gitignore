@@ -37,8 +37,11 @@ Thumbs.db
 # Enterprise-grade trading bot files (archived)
 enterprise-version/
 
-# Trading data and cache
+# Trading results and cache
+cache/
 data/
+*.csv
+*.png
 *.db
 *.sqlite
 *.sqlite3

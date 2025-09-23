@@ -33,32 +33,76 @@ python main.py
 - **Buy**: When 10-day SMA crosses above 30-day SMA
 - **Sell**: When 10-day SMA crosses below 30-day SMA
 
-## 🧪 Try Different Things
+## 🧪 Advanced Testing Modes
+
+### 1. Single Strategy Test (Original)
 ```bash
-# Different stock
-python main.py --symbol GOOGL
+# Test SMA strategy on Apple
+python main.py --mode single --symbol AAPL --strategy sma --short 10 --long 30
 
-# Different moving average periods
-python main.py --short 5 --long 20
+# Test RSI strategy on Bitcoin
+python main.py --mode single --symbol BTC-USD --strategy rsi --rsi-period 14
 
-# Different date range
-python main.py --start 2020-01-01
-
-# Different starting capital
-python main.py --cash 50000
+# Test different strategies
+python main.py --mode single --strategy macd --symbol TSLA
+python main.py --mode single --strategy bollinger --symbol SPY
 ```
+
+### 2. Multi-Asset Comparison (NEW!)
+```bash
+# Quick test across stocks and crypto
+python main.py --mode multi --test-mode quick
+
+# Test all strategies on stocks only
+python main.py --mode multi --test-mode stocks
+
+# Test all strategies on cryptocurrencies only
+python main.py --mode multi --test-mode crypto
+
+# Full comprehensive test (may take 30+ minutes)
+python main.py --mode multi --test-mode full
+```
+
+### 3. Parameter Optimization
+```bash
+# Find best SMA parameters for Apple
+python main.py --mode optimize --symbol AAPL
+
+# Optimize for different assets
+python main.py --mode optimize --symbol BTC-USD
+python main.py --mode optimize --symbol SPY
+```
+
+### 4. Results Visualization
+```bash
+# Generate charts and analysis from cached results
+python main.py --mode visualize
+```
+
+## 📊 What You'll Discover
+
+The multi-asset testing will show you:
+- **Which strategies work best on different asset types**
+- **Whether strategies that work on stocks also work on crypto**
+- **Consistency across different market conditions**
+- **Risk-adjusted performance comparisons**
+
+Available strategies: SMA, RSI, MACD, Bollinger Bands, EMA, Momentum, Buy & Hold
 
 ## 📁 Project Structure
 ```
 trading_bot/
-├── main.py                  # Main trading bot
-├── strategy.py              # SMA crossover strategy
-├── data.py                  # Yahoo Finance data fetching
-├── visualization.py         # Performance charts and summaries
-├── test_bot.py             # System verification
-├── environment-simple.yml  # micromamba dependencies
-├── .env.example            # Environment variables template
-└── enterprise-version/     # Archived enterprise-grade specifications
+├── main.py                   # Advanced trading bot with multiple modes
+├── strategies.py             # Multiple trading strategies (SMA, RSI, MACD, etc.)
+├── multi_asset_tester.py     # Test strategies across stocks and crypto
+├── optimizer.py              # Parameter optimization framework
+├── results_visualizer.py     # Generate charts and analysis reports
+├── data.py                   # Yahoo Finance data fetching
+├── visualization.py          # Performance summaries
+├── test_bot.py              # System verification
+├── cache/                   # JSON cache files for test results
+├── environment-simple.yml   # micromamba dependencies
+└── enterprise-version/      # Archived enterprise-grade specifications
 ```
 
 ## 🏗️ Enterprise Version Available
