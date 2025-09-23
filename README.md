@@ -79,6 +79,35 @@ python main.py --mode optimize --symbol SPY
 python main.py --mode visualize
 ```
 
+## 🧪 Testing
+
+### Run All Tests
+```bash
+# Run comprehensive unit test suite
+python run_tests.py
+
+# Run with pytest (alternative)
+pytest tests/ -v
+
+# Run with coverage report
+pytest tests/ --cov=. --cov-report=html
+```
+
+### Run Specific Test Modules
+```bash
+# Test trading strategies
+python run_tests.py --module test_strategies
+
+# Test data fetching
+python run_tests.py --module test_data
+
+# Test multi-asset functionality
+python run_tests.py --module test_multi_asset_tester
+
+# Test parameter optimization
+python run_tests.py --module test_optimizer
+```
+
 ## 📊 What You'll Discover
 
 The multi-asset testing will show you:
@@ -99,9 +128,15 @@ trading_bot/
 ├── results_visualizer.py     # Generate charts and analysis reports
 ├── data.py                   # Yahoo Finance data fetching
 ├── visualization.py          # Performance summaries
-├── test_bot.py              # System verification
+├── test_bot.py              # Basic system verification
+├── run_tests.py             # Comprehensive unit test runner
+├── tests/                   # Unit test suite
+│   ├── test_strategies.py   # Strategy testing
+│   ├── test_data.py         # Data fetching tests
+│   ├── test_multi_asset_tester.py  # Multi-asset tests
+│   └── test_optimizer.py    # Optimization tests
 ├── cache/                   # JSON cache files for test results
-├── environment-simple.yml   # micromamba dependencies
+├── environment-simple.yml   # micromamba dependencies with testing tools
 └── enterprise-version/      # Archived enterprise-grade specifications
 ```
 

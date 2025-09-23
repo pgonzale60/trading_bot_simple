@@ -5,7 +5,12 @@ dependencies:
   - python=3.11
   - pandas
   - matplotlib
+  - numpy
   - pip
   - pip:
     - yfinance
     - backtrader
+    - seaborn
+    - pytest
+    - pytest-cov
+    - coverage
