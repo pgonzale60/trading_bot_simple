@@ -1,6 +1,6 @@
 {
   "name": "Trading Bot - micromamba",
-  "image": "ghcr.io/mamba-org/micromamba-devcontainer:main",
+  "image": "ghcr.io/mamba-org/micromamba-devcontainer:git-515d637-focal-cuda-11.2.2",
 
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
@@ -17,7 +17,7 @@
         "ms-azuretools.vscode-docker"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/opt/conda/envs/trading-bot-simple/bin/python",
+        "python.defaultInterpreterPath": "$MAMBA_ROOT_PREFIX/envs/trading-bot-simple/bin/python",
         "python.terminal.activateEnvironment": true
       }
     }
