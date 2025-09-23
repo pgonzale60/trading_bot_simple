@@ -2,8 +2,14 @@
 
 A minimal trading bot to learn algorithmic trading basics with Python.
 
-## 🚀 Quick Setup (macOS)
+## 🚀 Quick Setup
 
+### Option 1: GitHub Codespaces (Recommended)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/pgonzale60/trading_bot_simple)
+
+Click the badge above to open in Codespaces. Environment will be automatically configured with micromamba.
+
+### Option 2: Local Setup (macOS/Linux)
 ```bash
 # Create and activate environment
 micromamba env create -f environment-simple.yml

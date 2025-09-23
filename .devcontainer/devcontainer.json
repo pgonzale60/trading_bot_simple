@@ -1,0 +1,35 @@
+{
+  "name": "Trading Bot - micromamba",
+  "image": "ghcr.io/mamba-org/micromamba-devcontainer:main",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylint",
+        "ms-toolsai.jupyter",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/conda/envs/trading-bot-simple/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+
+  "postCreateCommand": "micromamba env create -f environment-simple.yml && micromamba activate trading-bot-simple && python test_bot.py",
+
+  "remoteEnv": {
+    "MAMBA_ROOT_PREFIX": "/opt/conda"
+  },
+
+  "containerEnv": {
+    "MAMBA_ROOT_PREFIX": "/opt/conda"
+  }
+}
