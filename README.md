@@ -12,7 +12,7 @@ Click the badge above to open in Codespaces. Environment will be automatically c
 ### Option 2: Local Setup (macOS/Linux)
 ```bash
 # Create and activate environment
-micromamba env create -f environment-simple.yml
+micromamba env create -f environment-simple.yml -y
 micromamba activate trading-bot-simple
 
 # Test everything works

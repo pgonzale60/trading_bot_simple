@@ -6,7 +6,7 @@ A minimal educational trading bot for learning algorithmic trading concepts with
 ## Quick Start Commands
 ```bash
 # Environment setup
-micromamba env create -f environment-simple.yml
+micromamba env create -f environment-simple.yml -y
 micromamba activate trading-bot-simple
 
 # Test system

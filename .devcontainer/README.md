@@ -32,4 +32,9 @@ micromamba activate trading-bot-simple
 python test_bot.py
 ```
 
+If you need to recreate the environment:
+```bash
+micromamba env create -f environment-simple.yml -y
+```
+
 The environment should work perfectly in Codespaces with internet access for Yahoo Finance data.
