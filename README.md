@@ -1,5 +1,8 @@
 # Simple Trading Bot - Learning Project
 
+[![codecov](https://codecov.io/github/pgonzale60/trading_bot_simple/graph/badge.svg)](https://codecov.io/github/pgonzale60/trading_bot_simple)
+[![Tests](https://github.com/pgonzale60/trading_bot_simple/workflows/Trading%20Bot%20Tests/badge.svg)](https://github.com/pgonzale60/trading_bot_simple/actions/workflows/tests.yml)
+
 A minimal trading bot to learn algorithmic trading basics with Python.
 
 ## 🚀 Quick Setup
