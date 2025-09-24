@@ -34,9 +34,6 @@ ENV/
 ehthumbs.db
 Thumbs.db
 
-# Enterprise-grade trading bot files (archived)
-enterprise-version/
-
 # Trading results and cache
 cache/
 data/
