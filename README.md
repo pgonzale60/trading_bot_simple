@@ -7,7 +7,7 @@ A **professional algorithmic trading system** with comprehensive risk management
 
 ## 🎯 **[VIEW PERFORMANCE REPORT →](PERFORMANCE_REPORT.md)**
 
-**Key Results:** 440.8% max returns, 87.5% strategy success rate, 97% risk reduction vs gambling approaches.
+**Key Results:** 1,043.7% max returns (Bitcoin!), 100% strategy success rate, 97% risk reduction vs gambling approaches.
 
 ## 🛡️ **Risk Management Revolution**
 

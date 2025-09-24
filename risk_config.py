@@ -129,24 +129,24 @@ class RiskConfig:
             'adjustments': {
                 RiskLevel.CONSERVATIVE: {
                     'stop_loss_method': StopLossMethod.PERCENTAGE,
-                    'stop_loss_pct': 0.15,  # Wide stops for buy & hold
-                    'risk_per_trade': 0.05,  # Can risk more with wide stops
+                    'stop_loss_pct': 0.08,  # 8% stop loss
+                    'risk_per_trade': 0.015,  # Keep standard 1.5% risk
                     'max_positions': 1,
-                    'max_position_pct': 0.95,  # Nearly full position
+                    'max_position_pct': 0.25,  # 25% max position
                 },
                 RiskLevel.MODERATE: {
                     'stop_loss_method': StopLossMethod.PERCENTAGE,
-                    'stop_loss_pct': 0.20,
-                    'risk_per_trade': 0.08,
-                    'max_positions': 1,
-                    'max_position_pct': 0.95,
+                    'stop_loss_pct': 0.10,  # 10% stop loss
+                    'risk_per_trade': 0.020,  # Keep standard 2% risk
+                    'max_positions': 2,
+                    'max_position_pct': 0.30,  # 30% max position
                 },
                 RiskLevel.AGGRESSIVE: {
                     'stop_loss_method': StopLossMethod.PERCENTAGE,
-                    'stop_loss_pct': 0.25,
-                    'risk_per_trade': 0.10,
-                    'max_positions': 1,
-                    'max_position_pct': 0.95,
+                    'stop_loss_pct': 0.12,  # 12% stop loss
+                    'risk_per_trade': 0.025,  # Keep standard 2.5% risk
+                    'max_positions': 3,
+                    'max_position_pct': 0.35,  # 35% max position
                 }
             }
         }

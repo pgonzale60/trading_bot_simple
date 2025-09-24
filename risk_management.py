@@ -89,7 +89,8 @@ class RiskManager:
         return profiles[risk_profile]
 
     def calculate_position_size(self, entry_price: float, stop_price: float,
-                              volatility: Optional[float] = None) -> int:
+                              volatility: Optional[float] = None,
+                              allow_fractional: bool = None) -> float:
         """
         Calculate position size based on risk parameters
 
@@ -97,9 +98,10 @@ class RiskManager:
             entry_price: Intended entry price
             stop_price: Stop loss price
             volatility: Optional volatility adjustment (0-1 scale)
+            allow_fractional: Auto-detect fractional capability (crypto vs stocks)
 
         Returns:
-            Position size in shares
+            Position size in shares (or fractional shares for crypto)
         """
         if self.trading_halted:
             return 0
@@ -119,19 +121,36 @@ class RiskManager:
         if price_risk == 0:
             return 0
 
-        # Base position size
-        position_size = int(risk_amount / price_risk)
+        # Auto-detect if fractional shares are supported (crypto symbols contain '-USD')
+        if allow_fractional is None:
+            # Check if this looks like a crypto symbol
+            symbol_name = getattr(self.strategy.data, '_name', '') or str(self.strategy.data)
+            allow_fractional = '-USD' in symbol_name or 'USD' in symbol_name
+
+        # Calculate ideal position value in dollars first
+        ideal_position_value = min(risk_amount / (price_risk / entry_price),
+                                 account_value * self.risk_params['max_position_pct'])
+
+        if allow_fractional:
+            # For crypto: use dollar-based sizing, convert to fractional shares
+            position_size_float = ideal_position_value / entry_price
+            if position_size_float >= 0.001:  # Minimum meaningful crypto position
+                position_size = round(position_size_float, 6)  # 6 decimal places for crypto
+            else:
+                position_size = 0
+        else:
+            # For stocks: traditional whole share logic with minimum 1 share for expensive assets
+            ideal_position_size = risk_amount / price_risk
+            if ideal_position_size >= 0.5:  # Can afford at least half a share
+                position_size = max(1, int(ideal_position_size))
+            else:
+                position_size = 0
 
         # Apply volatility adjustment if provided
         if volatility is not None:
             # Reduce size during high volatility
             volatility_factor = max(0.5, 1.0 - (volatility - 1.0))
-            position_size = int(position_size * volatility_factor)
-
-        # Cap by maximum position percentage
-        max_position_value = account_value * self.risk_params['max_position_pct']
-        max_size_by_pct = int(max_position_value / entry_price)
-        position_size = min(position_size, max_size_by_pct)
+            position_size = position_size * volatility_factor
 
         # Check portfolio heat constraint
         if not self._can_add_position_heat(position_size, entry_price, stop_price):
