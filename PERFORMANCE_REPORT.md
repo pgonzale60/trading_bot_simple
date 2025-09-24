@@ -29,6 +29,20 @@ This report demonstrates the **exceptional performance** of the risk-managed tra
 
 ---
 
+## 📊 Visual Performance Analysis
+
+### **Strategy Performance Overview**
+![Strategy Performance](strategy_performance.png)
+
+*Comprehensive strategy performance visualization showing returns, drawdowns, and consistency across all tested strategies.*
+
+### **Asset Class Performance Breakdown**
+![Asset Performance](asset_performance.png)
+
+*Asset-by-asset performance analysis highlighting the exceptional performance of cryptocurrency assets with proper risk management.*
+
+---
+
 ## 📊 Comprehensive Strategy Analysis
 
 ### **Strategy Performance Summary**
@@ -232,6 +246,18 @@ This report demonstrates the **exceptional performance** of the risk-managed tra
 ---
 
 **This trading bot system represents a complete transformation from dangerous gambling to professional algorithmic trading. The risk management framework prevents account destruction while enabling exceptional returns. Use it wisely, respect the risk controls, and enjoy professional-grade systematic trading.** 🛡️📈
+
+---
+
+## 📈 Visual Analysis Notes
+
+The performance charts clearly demonstrate:
+- **BUY_HOLD dominance** across crypto assets with proper risk management
+- **Consistent profitability** across 87.5% of all strategy-asset combinations
+- **Risk control effectiveness** - even high-volatility assets maintain reasonable drawdowns
+- **Asset diversification benefits** - different strategies work optimally on different asset classes
+
+To generate updated charts: `python main.py --mode visualize`
 
 ---
 
