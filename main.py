@@ -1,10 +1,25 @@
 import argparse
 import sys
+import os
+import glob
 from multi_asset_tester import MultiAssetTester
 from results_visualizer import ResultsVisualizer
 
 
-def run_single_test(symbol, strategy, start_date, cash, **params):
+def clear_data_cache(cache_dir='data_cache'):
+    """Clear all cached stock data files."""
+    if os.path.exists(cache_dir):
+        cache_files = glob.glob(os.path.join(cache_dir, '*.json'))
+        for cache_file in cache_files:
+            os.remove(cache_file)
+        print(f"🗑️ Cleared {len(cache_files)} data cache files from {cache_dir}/")
+        if len(cache_files) == 0:
+            print(f"📁 Data cache directory {cache_dir}/ was already empty")
+    else:
+        print(f"📁 Data cache directory {cache_dir}/ does not exist")
+
+
+def run_single_test(symbol, strategy, start_date, cash, use_cache=True, **params):
     """Run a single strategy test (legacy mode)."""
     import backtrader as bt
     from strategies import STRATEGIES
@@ -21,8 +36,8 @@ def run_single_test(symbol, strategy, start_date, cash, **params):
     print("-" * 50)
 
     try:
-        # Load data
-        data = get_stock_data(symbol, start_date)
+        # Load data with caching
+        data = get_stock_data(symbol, start_date, use_cache=use_cache)
 
         # Set up backtest
         cerebro = bt.Cerebro()
@@ -75,10 +90,22 @@ def main():
                        default='quick', help='Multi-asset test mode')
 
     # Caching
-    parser.add_argument('--no-cache', action='store_true', help='Disable caching')
-    parser.add_argument('--clear-cache', action='store_true', help='Clear cache')
+    parser.add_argument('--no-cache', action='store_true', help='Disable data and results caching')
+    parser.add_argument('--clear-cache', action='store_true', help='Clear all cache files')
+    parser.add_argument('--clear-data-cache', action='store_true', help='Clear data cache only')
 
     args = parser.parse_args()
+
+    # Handle cache clearing options
+    if args.clear_cache or args.clear_data_cache:
+        clear_data_cache()
+        if args.clear_cache:
+            # Also clear MultiAssetTester cache
+            tester = MultiAssetTester()
+            tester.clear_all_caches()
+        return
+
+    use_cache = not args.no_cache
 
     if args.mode == 'single':
         # Single strategy test (legacy mode)
@@ -89,7 +116,7 @@ def main():
         elif args.strategy == 'rsi':
             strategy_params = {'rsi_period': args.rsi_period, 'rsi_low': args.rsi_low, 'rsi_high': args.rsi_high}
 
-        run_single_test(args.symbol, args.strategy, args.start, args.cash, **strategy_params)
+        run_single_test(args.symbol, args.strategy, args.start, args.cash, use_cache, **strategy_params)
 
     elif args.mode == 'multi':
         # Multi-asset strategy comparison
