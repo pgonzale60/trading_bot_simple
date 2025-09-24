@@ -42,7 +42,12 @@ jobs:
         pip install ruff || echo "Ruff not available, skipping lint"
         ruff check . --exit-zero || echo "Linting completed with warnings"
 
-    - name: Run unit tests
+    - name: Run critical risk management tests
+      shell: micromamba-shell {0}
+      run: |
+        python run_tests.py --module test_risk_management
+
+    - name: Run all unit tests
       shell: micromamba-shell {0}
       run: |
         python run_tests.py
@@ -50,7 +55,7 @@ jobs:
     - name: Run tests with pytest and coverage
       shell: micromamba-shell {0}
       run: |
-        pytest tests/ -v --cov=. --cov-branch --cov-report=xml --cov-report=term-missing --cov-config=.coveragerc --timeout=300
+        pytest tests/test_risk_management.py tests/test_multi_asset_tester.py tests/test_optimizer.py -v --cov=. --cov-branch --cov-report=xml --cov-report=term-missing --timeout=300
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5

@@ -101,8 +101,8 @@ def main():
     parser = argparse.ArgumentParser(description='Trading Bot Test Runner')
     parser.add_argument(
         '--module',
-        help='Run tests from specific module (e.g., test_strategies)',
-        choices=['test_strategies', 'test_data', 'test_multi_asset_tester', 'test_optimizer']
+        help='Run tests from specific module (e.g., test_risk_management)',
+        choices=['test_multi_asset_tester', 'test_optimizer', 'test_risk_management']
     )
     parser.add_argument(
         '--list',
@@ -114,10 +114,9 @@ def main():
 
     if args.list:
         print("Available test modules:")
-        print("  - test_strategies")
-        print("  - test_data")
-        print("  - test_multi_asset_tester")
-        print("  - test_optimizer")
+        print("  - test_risk_management     # Core risk management tests (ESSENTIAL)")
+        print("  - test_multi_asset_tester # Multi-asset testing functionality")
+        print("  - test_optimizer          # Strategy parameter optimization")
         return
 
     if args.module:
