@@ -12,30 +12,28 @@ def test_imports():
         print("✓ yfinance")
     except ImportError as e:
         print(f"✗ yfinance: {e}")
-        return False
+        assert False, f"Failed to import yfinance: {e}"
 
     try:
         import backtrader as bt
         print("✓ backtrader")
     except ImportError as e:
         print(f"✗ backtrader: {e}")
-        return False
+        assert False, f"Failed to import backtrader: {e}"
 
     try:
         import pandas as pd
         print("✓ pandas")
     except ImportError as e:
         print(f"✗ pandas: {e}")
-        return False
+        assert False, f"Failed to import pandas: {e}"
 
     try:
         import matplotlib.pyplot as plt
         print("✓ matplotlib")
     except ImportError as e:
         print(f"✗ matplotlib: {e}")
-        return False
-
-    return True
+        assert False, f"Failed to import matplotlib: {e}"
 
 
 def test_data_fetch():
@@ -47,10 +45,10 @@ def test_data_fetch():
         # Test with a small date range
         data = get_stock_data('AAPL', '2024-01-01', '2024-01-31')
         print("✓ Data fetch successful")
-        return True
+        assert data is not None, "Data fetch returned None"
     except Exception as e:
         print(f"✗ Data fetch failed: {e}")
-        return False
+        assert False, f"Data fetch failed: {e}"
 
 
 def test_strategy():
@@ -65,10 +63,9 @@ def test_strategy():
         cerebro = bt.Cerebro()
         cerebro.addstrategy(SMAStrategy)
         print("✓ Strategy setup successful")
-        return True
     except Exception as e:
         print(f"✗ Strategy test failed: {e}")
-        return False
+        assert False, f"Strategy test failed: {e}"
 
 
 def main():

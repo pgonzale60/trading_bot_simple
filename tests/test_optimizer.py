@@ -144,7 +144,7 @@ class TestParameterOptimizer(unittest.TestCase):
         )
 
         # Should test valid combinations only (short < long)
-        self.assertEqual(len(results), 3)  # (5,20), (5,30), (10,30)
+        self.assertEqual(len(results), 4)  # (5,20), (5,30), (10,20), (10,30)
 
         # Verify result structure
         for result in results:

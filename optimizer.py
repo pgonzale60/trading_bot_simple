@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from itertools import product
 from data import get_stock_data
-from strategy import SMAStrategy
+from strategies import SMAStrategy
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -100,13 +100,13 @@ class ParameterOptimizer:
             'final_value': final_value,
             'profit': final_value - self.cash,
             'return_pct': ((final_value - self.cash) / self.cash) * 100,
-            'total_trades': trades.total.closed if 'total' in trades else 0,
-            'winning_trades': trades.won.total if 'won' in trades else 0,
-            'losing_trades': trades.lost.total if 'lost' in trades else 0,
-            'win_rate': (trades.won.total / trades.total.closed * 100) if trades.get('total', {}).get('closed', 0) > 0 else 0,
+            'total_trades': trades.get('total', {}).get('closed', 0) if isinstance(trades, dict) else (trades.total.closed if hasattr(trades, 'total') and hasattr(trades.total, 'closed') else 0),
+            'winning_trades': trades.get('won', {}).get('total', 0) if isinstance(trades, dict) else (trades.won.total if hasattr(trades, 'won') and hasattr(trades.won, 'total') else 0),
+            'losing_trades': trades.get('lost', {}).get('total', 0) if isinstance(trades, dict) else (trades.lost.total if hasattr(trades, 'lost') and hasattr(trades.lost, 'total') else 0),
+            'win_rate': (trades.get('won', {}).get('total', 0) / trades.get('total', {}).get('closed', 1) * 100) if trades.get('total', {}).get('closed', 0) > 0 else 0,
             'sharpe_ratio': sharpe.get('sharperatio', 0) or 0,
-            'max_drawdown': drawdown.max.drawdown if 'max' in drawdown else 0,
-            'avg_trade': trades.won.pnl.average if trades.get('won', {}).get('pnl', {}).get('average') else 0
+            'max_drawdown': drawdown.get('max', {}).get('drawdown', 0) if isinstance(drawdown, dict) else (drawdown.max.drawdown if hasattr(drawdown, 'max') and hasattr(drawdown.max, 'drawdown') else 0),
+            'avg_trade': trades.get('won', {}).get('pnl', {}).get('average', 0) if isinstance(trades, dict) else (trades.won.pnl.average if hasattr(trades, 'won') and hasattr(trades.won, 'pnl') and hasattr(trades.won.pnl, 'average') else 0)
         }
 
     def analyze_results(self, results):
