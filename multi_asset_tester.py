@@ -14,7 +14,8 @@ import os
 from datetime import datetime
 from itertools import product
 from data import get_stock_data
-from strategies import STRATEGIES, get_strategy_params
+from risk_managed_strategies import RISK_MANAGED_STRATEGIES, get_risk_managed_strategy_params
+from risk_management import RiskLevel
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -156,13 +157,14 @@ class MultiAssetTester:
             return None
 
         # Run backtest
-        if strategy_name not in STRATEGIES:
+        if strategy_name not in RISK_MANAGED_STRATEGIES:
             raise ValueError(f"Unknown strategy: {strategy_name}")
 
-        strategy_class = STRATEGIES[strategy_name]
+        strategy_class = RISK_MANAGED_STRATEGIES[strategy_name]
 
         cerebro = bt.Cerebro()
-        cerebro.addstrategy(strategy_class, **params)
+        # Add strategy with AGGRESSIVE risk profile by default for multi-asset testing
+        cerebro.addstrategy(strategy_class, risk_profile=RiskLevel.AGGRESSIVE, **params)
         cerebro.adddata(data)
         cerebro.broker.setcash(self.cash)
         cerebro.broker.setcommission(commission=0.001)
