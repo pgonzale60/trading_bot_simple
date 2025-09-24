@@ -24,7 +24,7 @@
     }
   },
 
-  "postCreateCommand": "micromamba env create -f environment-simple.yml -y && micromamba activate trading-bot-simple && python test_bot.py",
+  "postCreateCommand": "micromamba env create -f environment-simple.yml -y && micromamba run -n trading-bot-simple python test_bot.py",
 
   "remoteEnv": {
     "MAMBA_ROOT_PREFIX": "/opt/conda"
