@@ -77,6 +77,10 @@ def discover_and_run_tests():
 def run_specific_test_module(module_name):
     """Run tests from a specific module."""
     try:
+        # Add current directory to path for imports
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        sys.path.insert(0, current_dir)
+
         # Import the specific test module
         test_module = __import__(f'tests.{module_name}', fromlist=[module_name])
 
