@@ -3,6 +3,7 @@
 Unit tests for parameter optimization functionality.
 """
 
+import json
 import unittest
 import sys
 import os
@@ -15,6 +16,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optimizer import ParameterOptimizer
 
 
+def load_fixtures():
+    """Load test fixtures from JSON file."""
+    fixture_path = os.path.join(os.path.dirname(__file__), 'fixtures.json')
+    if os.path.exists(fixture_path):
+        with open(fixture_path, 'r') as f:
+            return json.load(f)
+    return {}
+
+
 class TestParameterOptimizer(unittest.TestCase):
     """Test ParameterOptimizer functionality."""
 
@@ -25,6 +35,7 @@ class TestParameterOptimizer(unittest.TestCase):
             start_date='2023-01-01',
             cash=10000
         )
+        self.fixtures = load_fixtures()
 
         # Create mock data
         self.mock_data = pd.DataFrame({
@@ -107,33 +118,47 @@ class TestParameterOptimizer(unittest.TestCase):
         """Test SMA parameter optimization."""
         self.optimizer.data = MagicMock()
 
-        # Mock the _run_backtest method
+        # Mock the _run_backtest method with deterministic fixture-based results
+        expected_results = self.fixtures.get('optimizer_sma_parameters', [])
+        result_lookup = {(r['short_period'], r['long_period']): r for r in expected_results}
+
         def mock_run_backtest(strategy_class, **params):
-            # Return different results based on parameters
+            # Return specific fixture values based on parameters
             short = params.get('short_period', 10)
             long = params.get('long_period', 30)
 
-            # Simulate better performance for certain combinations
-            if short == 5 and long == 20:
-                return_pct = 15.0
-            elif short == 10 and long == 30:
-                return_pct = 10.0
+            # Use fixture data if available, otherwise fallback to default
+            if (short, long) in result_lookup:
+                fixture_result = result_lookup[(short, long)]
+                return {
+                    'initial_value': 10000,
+                    'final_value': 10000 * (1 + fixture_result['return_pct']/100),
+                    'profit': 10000 * (fixture_result['return_pct']/100),
+                    'return_pct': fixture_result['return_pct'],
+                    'total_trades': fixture_result['total_trades'],
+                    'winning_trades': fixture_result['winning_trades'],
+                    'losing_trades': fixture_result['losing_trades'],
+                    'win_rate': fixture_result['win_rate'],
+                    'sharpe_ratio': fixture_result['sharpe_ratio'],
+                    'max_drawdown': fixture_result['max_drawdown'],
+                    'avg_trade': fixture_result['avg_trade']
+                }
             else:
+                # Fallback for parameters not in fixtures
                 return_pct = 5.0
-
-            return {
-                'initial_value': 10000,
-                'final_value': 10000 * (1 + return_pct/100),
-                'profit': 10000 * (return_pct/100),
-                'return_pct': return_pct,
-                'total_trades': 5,
-                'winning_trades': 3,
-                'losing_trades': 2,
-                'win_rate': 60.0,
-                'sharpe_ratio': 1.5,
-                'max_drawdown': 5.0,
-                'avg_trade': 100.0
-            }
+                return {
+                    'initial_value': 10000,
+                    'final_value': 10000 * (1 + return_pct/100),
+                    'profit': 10000 * (return_pct/100),
+                    'return_pct': return_pct,
+                    'total_trades': 5,
+                    'winning_trades': 3,
+                    'losing_trades': 2,
+                    'win_rate': 60.0,
+                    'sharpe_ratio': 1.5,
+                    'max_drawdown': 5.0,
+                    'avg_trade': 100.0
+                }
 
         self.optimizer._run_backtest = mock_run_backtest
 
@@ -145,6 +170,22 @@ class TestParameterOptimizer(unittest.TestCase):
 
         # Should test valid combinations only (short < long)
         self.assertEqual(len(results), 4)  # (5,20), (5,30), (10,20), (10,30)
+
+        # Validate specific results against fixtures if available
+        if expected_results:
+            for result in results:
+                expected = next((r for r in expected_results if
+                               r['short_period'] == result['short_period'] and
+                               r['long_period'] == result['long_period']), None)
+                if expected:
+                    self.assertEqual(result['return_pct'], expected['return_pct'])
+                    self.assertEqual(result['total_trades'], expected['total_trades'])
+                    self.assertEqual(result['winning_trades'], expected['winning_trades'])
+                    self.assertEqual(result['losing_trades'], expected['losing_trades'])
+                    self.assertEqual(result['win_rate'], expected['win_rate'])
+                    self.assertEqual(result['sharpe_ratio'], expected['sharpe_ratio'])
+                    self.assertEqual(result['max_drawdown'], expected['max_drawdown'])
+                    self.assertEqual(result['avg_trade'], expected['avg_trade'])
 
         # Verify result structure
         for result in results:

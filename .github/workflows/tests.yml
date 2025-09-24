@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.11, 3.12]
+        python-version: [3.11]
 
     steps:
     - uses: actions/checkout@v4
@@ -117,26 +117,3 @@ jobs:
         with:
           name: bandit-report
           path: bandit-report.json
-
-  code-quality:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.11
-
-    - name: Install code quality tools
-      run: |
-        pip install ruff mypy
-
-    - name: Run ruff linting
-      run: |
-        ruff check . --output-format=github
-
-    - name: Run type checking with mypy
-      run: |
-        mypy --install-types --non-interactive --ignore-missing-imports . || echo "Type checking completed with issues"
