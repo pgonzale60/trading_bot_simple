@@ -101,7 +101,6 @@ jobs:
         timeout 120 python main.py --mode optimize --symbol AAPL --start 2024-01-01 || echo "Optimization test completed (may have failed due to network)"
 
   security-scan:
-    bandit-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
