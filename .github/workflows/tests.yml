@@ -113,7 +113,7 @@ jobs:
       - name: Run Bandit Scan
         run: bandit -r ./src -f json -o bandit-report.json --severity-level high
       - name: Upload Bandit Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bandit-report
           path: bandit-report.json
