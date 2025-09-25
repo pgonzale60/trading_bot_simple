@@ -223,5 +223,128 @@ class TestSystemTransformation(unittest.TestCase):
         self.assertLessEqual(position_value, 5000, "Position should be controlled")
 
 
+class TestRiskManagementIntegration(unittest.TestCase):
+    """Integration tests with real Backtrader strategies and market data."""
+
+    def setUp(self):
+        """Set up for integration tests."""
+        import warnings
+        warnings.filterwarnings('ignore')
+
+    def _get_test_data(self, symbol, days=100):
+        """Get test data for backtesting."""
+        try:
+            import yfinance as yf
+            import pandas as pd
+            import backtrader as bt
+
+            end_date = pd.Timestamp.now()
+            start_date = end_date - pd.Timedelta(days=days)
+
+            data = yf.download(symbol, start=start_date, end=end_date)
+
+            if data.empty:
+                return None
+
+            # Handle MultiIndex columns
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = data.columns.droplevel(1)
+
+            data.reset_index(inplace=True)
+
+            return bt.feeds.PandasData(
+                dataname=data,
+                datetime='Date',
+                open='Open',
+                high='High',
+                low='Low',
+                close='Close',
+                volume='Volume'
+            )
+        except Exception:
+            return None
+
+    def test_position_sizing_limits_integration(self):
+        """Test position sizing with real strategy and data."""
+        try:
+            import backtrader as bt
+            from risk_managed_strategies import RISK_MANAGED_STRATEGIES
+
+            data = self._get_test_data('AAPL', days=100)
+            if data is None:
+                self.skipTest("Could not get test data")
+
+            # Test with conservative risk profile
+            cerebro = bt.Cerebro()
+            cerebro.broker.setcash(10000)
+            cerebro.broker.setcommission(commission=0.001)
+
+            cerebro.addstrategy(
+                RISK_MANAGED_STRATEGIES['sma'],
+                risk_profile=RiskLevel.CONSERVATIVE,
+                short_period=5,
+                long_period=15
+            )
+            cerebro.adddata(data)
+
+            # Run backtest
+            strategy_results = cerebro.run()
+            strategy = strategy_results[0]
+
+            # Test should complete without errors
+            self.assertIsNotNone(strategy, "Strategy should execute successfully")
+
+        except ImportError:
+            self.skipTest("Integration test dependencies not available")
+        except Exception as e:
+            self.fail(f"Integration test failed with error: {e}")
+
+    def test_risk_profile_differences_integration(self):
+        """Test that different risk profiles produce different behaviors."""
+        # Get configurations for all profiles
+        conservative = RiskConfig.get_strategy_config(StrategyType.TREND_FOLLOWING, RiskLevel.CONSERVATIVE)
+        moderate = RiskConfig.get_strategy_config(StrategyType.TREND_FOLLOWING, RiskLevel.MODERATE)
+        aggressive = RiskConfig.get_strategy_config(StrategyType.TREND_FOLLOWING, RiskLevel.AGGRESSIVE)
+
+        # Check that risk per trade increases
+        risk_progression = (conservative['risk_per_trade'] <
+                          moderate['risk_per_trade'] <
+                          aggressive['risk_per_trade'])
+
+        # Check that max positions increase
+        position_progression = (conservative['max_positions'] <=
+                              moderate['max_positions'] <=
+                              aggressive['max_positions'])
+
+        # Check that max drawdown tolerance increases
+        drawdown_progression = (conservative['max_drawdown'] <
+                              moderate['max_drawdown'] <
+                              aggressive['max_drawdown'])
+
+        self.assertTrue(risk_progression, "Risk per trade should increase across profiles")
+        self.assertTrue(position_progression, "Max positions should increase across profiles")
+        self.assertTrue(drawdown_progression, "Max drawdown should increase across profiles")
+
+    def test_strategy_specific_settings_integration(self):
+        """Test that different strategy types have appropriate risk settings."""
+        # Test that mean reversion strategies have tighter stops than trend following
+        mean_rev_config = RiskConfig.get_strategy_config(StrategyType.MEAN_REVERSION, RiskLevel.MODERATE)
+        trend_config = RiskConfig.get_strategy_config(StrategyType.TREND_FOLLOWING, RiskLevel.MODERATE)
+        buy_hold_config = RiskConfig.get_strategy_config(StrategyType.BUY_HOLD, RiskLevel.MODERATE)
+
+        # Mean reversion should have tighter stops
+        mean_rev_tighter = mean_rev_config['stop_loss_pct'] < trend_config.get('stop_loss_pct', 0.04)
+
+        # Buy & hold should have wider stops
+        buy_hold_wider = buy_hold_config['stop_loss_pct'] > trend_config.get('stop_loss_pct', 0.04)
+
+        # Buy & hold should allow larger positions
+        buy_hold_larger = buy_hold_config['max_position_pct'] > trend_config['max_position_pct']
+
+        self.assertTrue(mean_rev_tighter, "Mean reversion should have tighter stops")
+        self.assertTrue(buy_hold_wider, "Buy & hold should have wider stops")
+        self.assertTrue(buy_hold_larger, "Buy & hold should allow larger positions")
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
