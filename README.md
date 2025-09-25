@@ -144,31 +144,43 @@ The risk-managed multi-asset testing reveals:
 
 ## 📁 Project Structure
 ```
-trading_bot/
-├── PERFORMANCE_REPORT.md     # 🎯 COMPREHENSIVE PERFORMANCE ANALYSIS
-├── main.py                   # Advanced trading bot with multiple modes
-├── risk_managed_strategies.py # 🛡️ Professional risk-managed strategies
-├── risk_management.py        # 🛡️ Core risk management engine
-├── risk_managed_strategy.py  # 🛡️ Base class for all strategies
-├── risk_config.py           # 🛡️ Risk configuration system
-├── test_risk_management.py  # 🛡️ Risk management validation tests
-├── multi_asset_tester.py    # Test strategies across stocks and crypto
-├── strategies.py            # Legacy strategies (now risk-managed)
-├── data.py                  # Yahoo Finance data fetching
-├── docs/risk-management/    # 📚 Complete risk management documentation
-│   ├── README.md           # Quick start guide
-│   ├── 01-overview.md      # Risk philosophy and transformation
-│   ├── 02-position-sizing.md # Professional position sizing
-│   ├── 03-stop-losses.md   # Stop loss management
-│   ├── 04-portfolio-heat.md # Portfolio risk monitoring
+trading_bot_simple/
+├── PERFORMANCE_REPORT.md        # 🎯 COMPREHENSIVE PERFORMANCE ANALYSIS
+├── ASSET_SELECTION_METHODOLOGY.md # 📋 Research-based asset selection approach
+├── CHANGELOG.md                 # Version history and improvements
+├── main.py                      # Advanced trading bot with multiple modes
+├── multi_asset_tester.py        # Test strategies across 41 assets (stocks + crypto)
+├── results_visualizer.py        # Performance visualization and analysis
+├── optimizer.py                 # Parameter optimization tools
+├── strategies.py                # Multiple trading strategies (SMA, RSI, MACD, etc.)
+├── risk_managed_strategies.py   # 🛡️ Professional risk-managed strategies
+├── risk_management.py           # 🛡️ Core risk management engine
+├── risk_managed_strategy.py     # 🛡️ Base class for all strategies
+├── risk_config.py              # 🛡️ Risk configuration system
+├── data.py                     # Yahoo Finance data fetching
+├── visualization.py            # Basic performance charts
+├── test_bot.py                 # System verification script
+├── run_tests.py                # Test runner with module selection
+├── environment-simple.yml      # Micromamba dependencies
+├── cache/                      # JSON cache files for test results
+├── data_cache/                 # Yahoo Finance data cache
+├── docs/risk-management/       # 📚 Complete risk management documentation
+│   ├── README.md              # Quick start guide
+│   ├── 01-overview.md         # Risk philosophy and transformation
+│   ├── 02-position-sizing.md  # Professional position sizing
+│   ├── 03-stop-losses.md      # Stop loss management
+│   ├── 04-portfolio-heat.md   # Portfolio risk monitoring
 │   ├── 05-drawdown-protection.md # Circuit breaker systems
 │   ├── 06-strategy-profiles.md # Strategy-specific risk settings
-│   ├── 07-configuration.md # Configuration guide
-│   ├── 08-examples.md      # Complete working examples
-│   └── 09-testing.md       # Comprehensive testing framework
-├── cache/                  # JSON cache files for test results
-├── data_cache/            # Yahoo Finance data cache
-└── tests/                 # Unit test suite
+│   ├── 07-configuration.md    # Configuration guide
+│   ├── 08-examples.md         # Complete working examples
+│   └── 09-testing.md          # Comprehensive testing framework
+└── tests/                     # Unit test suite (53 tests, 100% passing)
+    ├── test_risk_management.py   # 🛡️ Core risk management tests (15 tests)
+    ├── test_results_visualizer.py # Visualization testing (12 tests)
+    ├── test_multi_asset_tester.py # Multi-asset testing validation
+    ├── test_optimizer.py          # Parameter optimization tests
+    └── test_visualization.py      # Chart generation tests
 ```
 
 ## 🛡️ **Professional Risk Management**
