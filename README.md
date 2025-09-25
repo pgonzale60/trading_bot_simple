@@ -7,7 +7,7 @@ A **professional algorithmic trading system** with comprehensive risk management
 
 ## 🎯 **[VIEW PERFORMANCE REPORT →](PERFORMANCE_REPORT.md)**
 
-**Key Results:** 1,043.7% max returns (Bitcoin!), 100% strategy success rate, 97% risk reduction vs gambling approaches.
+**Key Results:** 76.4% strategy success rate across 250 tests, 97% risk reduction vs gambling approaches, professional risk management with 2% max risk per trade.
 
 ## 🛡️ **Risk Management Revolution**
 
@@ -134,13 +134,13 @@ python run_tests.py --module test_optimizer
 **[See the complete PERFORMANCE REPORT for detailed results →](PERFORMANCE_REPORT.md)**
 
 The risk-managed multi-asset testing reveals:
-- **440.8% maximum returns** (ETH-USD with risk management!)
-- **87.5% strategy success rate** across all asset classes
-- **Professional risk control** prevents account destruction
-- **Crypto strategies outperform** with proper risk management
-- **Consistent profitability** across different market conditions
+- **76.4% strategy success rate** across 250 strategy-asset combinations
+- **Professional risk control** prevents account destruction (2% max risk per trade)
+- **5 different strategies tested** across 41 assets (23 stocks + 18 cryptos)
+- **RSI strategy shows highest returns** but with significant volatility
+- **SMA and MACD provide consistent performance** with good risk control
 
-**Key Finding:** Risk management transforms crypto from dangerous gambling into the highest-performing asset class!
+**Key Finding:** Risk management transforms dangerous gambling (95% account risk) into professional trading with systematic position sizing and stop losses!
 
 ## 📁 Project Structure
 ```
