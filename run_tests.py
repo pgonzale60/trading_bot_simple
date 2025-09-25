@@ -16,12 +16,20 @@ def discover_and_run_tests():
     """Discover and run all tests in the tests directory."""
     # Add current directory to path
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    sys.path.insert(0, current_dir)
+    if current_dir not in sys.path:
+        sys.path.insert(0, current_dir)
 
     # Discover tests
     loader = unittest.TestLoader()
     start_dir = os.path.join(current_dir, 'tests')
-    suite = loader.discover(start_dir, pattern='test_*.py')
+
+    # Change to the project directory to ensure proper imports
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(current_dir)
+        suite = loader.discover('tests', pattern='test_*.py')
+    finally:
+        os.chdir(original_cwd)
 
     # Create test runner with detailed output
     stream = StringIO()
