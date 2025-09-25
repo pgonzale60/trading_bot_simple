@@ -32,36 +32,58 @@ class MultiAssetTester:
         # Ensure cache directory exists
         os.makedirs(cache_dir, exist_ok=True)
 
-        # Define asset lists
+        # Define asset lists (2019 perspective - mix of safe market cap leaders + riskier selections)
         self.stock_symbols = [
-            'AAPL',  # Apple - tech
-            'MSFT',  # Microsoft - tech
-            'GOOGL', # Google - tech
-            'AMZN',  # Amazon - tech/retail
-            'TSLA',  # Tesla - EV/tech
-            'SPY',   # S&P 500 ETF
-            'QQQ',   # Nasdaq ETF
-            'VTI',   # Total Stock Market ETF
-            'JPM',   # JPMorgan - finance
-            'JNJ',   # Johnson & Johnson - healthcare
-            'PG',    # Procter & Gamble - consumer goods
-            'KO',    # Coca-Cola - consumer goods
-            'WMT',   # Walmart - retail
-            'XOM',   # ExxonMobil - energy
-            'GLD',   # Gold ETF
+            # Safe: 2019 Market Cap Leaders
+            'AAPL',  # Apple - largest by market cap (2019)
+            'MSFT',  # Microsoft - 2nd largest (2019)
+            'GOOGL', # Alphabet - 4th largest (2019)
+            'AMZN',  # Amazon - 3rd largest (2019)
+            'JPM',   # JPMorgan - financials outperformed 2019
+            'JNJ',   # J&J - healthcare stability
+            'SPY',   # S&P 500 ETF - broad market
+            'QQQ',   # Nasdaq ETF - tech exposure
+
+            # Riskier: Emerging Trends & Growth (visible by 2019)
+            'NVDA',  # NVIDIA - GPU/AI trend emerging
+            'META',  # Meta - social platform dominance
+            'TSLA',  # Tesla - EV revolution starting
+            'V',     # Visa - digital payments growth
+            'NFLX',  # Netflix - streaming wars heating up
+            'AMD',   # AMD - competing with Intel in CPUs
+            'CRM',   # Salesforce - cloud/SaaS boom
+            'SQ',    # Square - fintech/small business payments
+            'SHOP',  # Shopify - e-commerce platform growth
+            'ZM',    # Zoom - remote work trend (pre-COVID)
+            'ROKU',  # Roku - streaming platform pure play
+            'BYND',  # Beyond Meat - alt protein trend (IPO 2019)
+            'UBER',  # Uber - gig economy (IPO 2019)
+            'LYFT',  # Lyft - rideshare competitor (IPO 2019)
+            'PINS',  # Pinterest - social commerce (IPO 2019)
         ]
 
         self.crypto_symbols = [
-            'BTC-USD',   # Bitcoin
-            'ETH-USD',   # Ethereum
-            'BNB-USD',   # Binance Coin
-            'ADA-USD',   # Cardano
-            'SOL-USD',   # Solana
-            'DOT-USD',   # Polkadot
-            'AVAX-USD',  # Avalanche
-            'MATIC-USD', # Polygon
-            'LINK-USD',  # Chainlink
-            'UNI-USD',   # Uniswap
+            # Safe: 2019 Market Cap Leaders
+            'BTC-USD',   # Bitcoin - #1 by market cap (2019)
+            'ETH-USD',   # Ethereum - #2 by market cap (2019)
+            'XRP-USD',   # Ripple - #3 by market cap (2019)
+            'LTC-USD',   # Litecoin - #4 by market cap (2019)
+            'BNB-USD',   # Binance Coin - #7 by market cap (2019)
+            'ADA-USD',   # Cardano - #9 by market cap (2019)
+            'LINK-USD',  # Chainlink - oracle infrastructure
+            'DOT-USD',   # Polkadot - interoperability
+
+            # Riskier: Emerging DeFi/Alt Coins (gaining momentum by 2019)
+            'DOGE-USD',  # Dogecoin - meme coin with community
+            'XLM-USD',   # Stellar - payments focus
+            'TRX-USD',   # TRON - content/gaming platform
+            'EOS-USD',   # EOS - Ethereum competitor
+            'XMR-USD',   # Monero - privacy coin
+            'DASH-USD',  # Dash - payments/privacy
+            'NEO-USD',   # NEO - "Chinese Ethereum"
+            'IOTA-USD',  # IOTA - IoT blockchain
+            'ETC-USD',   # Ethereum Classic - original chain
+            'ZEC-USD',   # Zcash - privacy coin
         ]
 
         self.all_symbols = self.stock_symbols + self.crypto_symbols

@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.2.0 - Research-Based Asset Selection
+- Expanded asset universe from 25 to 41 assets (23 stocks + 18 cryptos)
+- Added research-based selection methodology to avoid hindsight bias
+- Added key missing assets: NVDA, META, TSLA, V, AMD, XRP, LTC, DOGE
+- Created ASSET_SELECTION_METHODOLOGY.md documentation
+
 ## v2.1.0 - Clean Test Suite & Risk Management Focus
 
 ### 🧪 Testing Framework Cleanup
