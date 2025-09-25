@@ -55,12 +55,30 @@ class ResultsVisualizer:
         if df.empty:
             return
 
+        # Handle extreme outliers by capping values for visualization
+        df_viz = df.copy()
+        return_col = 'return_pct'
+
+        # Identify extreme outliers (beyond 99th percentile)
+        p99 = df_viz[return_col].quantile(0.99)
+        p1 = df_viz[return_col].quantile(0.01)
+        extreme_outliers = df_viz[df_viz[return_col] > p99]
+
+        if not extreme_outliers.empty:
+            print(f"📈 Extreme outliers detected (>{p99:.1f}%):")
+            for _, row in extreme_outliers.nlargest(5, return_col).iterrows():
+                print(f"  {row['symbol']} + {row['strategy']}: {row[return_col]:,.1f}%")
+            print(f"  Capping visualization at {p99:.1f}% for readability\n")
+
+            # Cap extreme values for visualization only
+            df_viz[return_col] = df_viz[return_col].clip(upper=p99)
+
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-        fig.suptitle('Trading Strategy Performance Analysis', fontsize=16, fontweight='bold')
+        fig.suptitle('Trading Strategy Performance Analysis (Outliers Capped for Readability)', fontsize=16, fontweight='bold')
 
         # 1. Return distribution by strategy
         ax1 = axes[0, 0]
-        strategy_returns = df.groupby('strategy')['return_pct'].apply(list)
+        strategy_returns = df_viz.groupby('strategy')['return_pct'].apply(list)
         strategies = list(strategy_returns.keys())
         returns_data = [strategy_returns[s] for s in strategies]
 
@@ -76,13 +94,13 @@ class ResultsVisualizer:
             patch.set_facecolor(color)
             patch.set_alpha(0.7)
 
-        # 2. Average return by strategy
+        # 2. Average return by strategy (using capped data)
         ax2 = axes[0, 1]
-        avg_returns = df.groupby('strategy')['return_pct'].mean().sort_values(ascending=True)
+        avg_returns = df_viz.groupby('strategy')['return_pct'].mean().sort_values(ascending=True)
         bars = ax2.barh(range(len(avg_returns)), avg_returns.values)
         ax2.set_yticks(range(len(avg_returns)))
         ax2.set_yticklabels(avg_returns.index)
-        ax2.set_xlabel('Average Return (%)')
+        ax2.set_xlabel('Average Return (% - capped)')
         ax2.set_title('Average Return by Strategy')
         ax2.axvline(x=0, color='red', linestyle='--', alpha=0.7)
 
@@ -91,22 +109,22 @@ class ResultsVisualizer:
             bar.set_color('green' if value > 0 else 'red')
             bar.set_alpha(0.7)
 
-        # 3. Win rate vs Return scatter
+        # 3. Win rate vs Return scatter (using capped data)
         ax3 = axes[1, 0]
-        if 'asset_type' in df.columns:
-            for asset_type in df['asset_type'].unique():
-                subset = df[df['asset_type'] == asset_type]
+        if 'asset_type' in df_viz.columns:
+            for asset_type in df_viz['asset_type'].unique():
+                subset = df_viz[df_viz['asset_type'] == asset_type]
                 ax3.scatter(subset['win_rate'], subset['return_pct'],
                           label=asset_type.title(), alpha=0.6, s=50)
         else:
-            ax3.scatter(df['win_rate'], df['return_pct'], alpha=0.6, s=50)
+            ax3.scatter(df_viz['win_rate'], df_viz['return_pct'], alpha=0.6, s=50)
 
         ax3.set_xlabel('Win Rate (%)')
-        ax3.set_ylabel('Return (%)')
+        ax3.set_ylabel('Return (% - capped)')
         ax3.set_title('Win Rate vs Return')
         ax3.axhline(y=0, color='red', linestyle='--', alpha=0.5)
         ax3.axvline(x=50, color='gray', linestyle='--', alpha=0.5)
-        if 'asset_type' in df.columns:
+        if 'asset_type' in df_viz.columns:
             ax3.legend()
 
         # 4. Sharpe ratio comparison
@@ -138,19 +156,33 @@ class ResultsVisualizer:
         if df.empty or 'symbol' not in df.columns:
             return
 
+        # Handle extreme outliers for asset visualization
+        df_viz = df.copy()
+        p99 = df_viz['return_pct'].quantile(0.99)
+        extreme_outliers = df_viz[df_viz['return_pct'] > p99]
+
+        if not extreme_outliers.empty:
+            print(f"📈 Asset analysis - Extreme outliers (>{p99:.1f}%) noted but shown separately")
+
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
         fig.suptitle('Asset Performance Analysis', fontsize=16, fontweight='bold')
 
-        # 1. Best performing assets
+        # 1. Best performing assets (show top 15 excluding extreme outliers)
         ax1 = axes[0, 0]
         best_per_asset = df.loc[df.groupby('symbol')['return_pct'].idxmax()]
-        best_sorted = best_per_asset.sort_values('return_pct', ascending=True).tail(15)
+
+        # For top 15, exclude extreme outliers to see meaningful spread
+        best_excluding_extreme = best_per_asset[best_per_asset['return_pct'] <= p99]
+        if len(best_excluding_extreme) < 15:
+            best_sorted = best_per_asset.sort_values('return_pct', ascending=True).tail(15)
+        else:
+            best_sorted = best_excluding_extreme.sort_values('return_pct', ascending=True).tail(15)
 
         bars = ax1.barh(range(len(best_sorted)), best_sorted['return_pct'])
         ax1.set_yticks(range(len(best_sorted)))
         ax1.set_yticklabels(best_sorted['symbol'])
-        ax1.set_xlabel('Best Return (%)')
-        ax1.set_title('Top 15 Assets (Best Strategy Performance)')
+        ax1.set_xlabel('Best Return (% - extreme outliers excluded)')
+        ax1.set_title('Top 15 Assets (Excluding Extreme Outliers)')
 
         for bar, value in zip(bars, best_sorted['return_pct']):
             bar.set_color('green' if value > 0 else 'red')
@@ -261,6 +293,55 @@ class ResultsVisualizer:
             for _, row in top_assets.iterrows():
                 print(f"{row['symbol']:<10} {row['return_pct']:>10.1f}% {row['strategy']:<12}")
 
+    def plot_extreme_outliers(self, df, save_path=None):
+        """Create a separate plot just for extreme outliers."""
+        if df.empty:
+            return
+
+        # Identify extreme outliers (top 1%)
+        p99 = df['return_pct'].quantile(0.99)
+        extreme_outliers = df[df['return_pct'] > p99].copy()
+
+        if extreme_outliers.empty:
+            print("No extreme outliers found.")
+            return
+
+        # Sort by return and take top 10
+        extreme_outliers = extreme_outliers.nlargest(10, 'return_pct')
+
+        fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+        fig.suptitle('🚀 EXTREME OUTLIERS - Top 10 Exceptional Performers', fontsize=16, fontweight='bold')
+
+        # Create labels with both symbol and strategy
+        labels = [f"{row['symbol']}\n({row['strategy']})" for _, row in extreme_outliers.iterrows()]
+        values = extreme_outliers['return_pct'].values
+
+        bars = ax.barh(range(len(values)), values)
+        ax.set_yticks(range(len(values)))
+        ax.set_yticklabels(labels)
+        ax.set_xlabel('Return (%)')
+        ax.set_title('Exceptional Performance Cases')
+
+        # Color bars in gradient
+        colors = plt.cm.plasma(np.linspace(0, 1, len(values)))
+        for bar, color in zip(bars, colors):
+            bar.set_color(color)
+            bar.set_alpha(0.8)
+
+        # Add value labels on bars
+        for i, (bar, value) in enumerate(zip(bars, values)):
+            ax.text(value + max(values) * 0.01, i, f'{value:,.0f}%',
+                   va='center', fontweight='bold', fontsize=10)
+
+        ax.grid(axis='x', alpha=0.3)
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Extreme outliers plot saved to: {save_path}")
+
+        plt.show()
+
     def generate_full_report(self):
         """Generate a complete analysis report with visualizations."""
         df = self.load_all_cached_results()
@@ -277,6 +358,7 @@ class ResultsVisualizer:
         # Create visualizations
         self.plot_strategy_performance(df, 'strategy_performance.png')
         self.plot_asset_performance(df, 'asset_performance.png')
+        self.plot_extreme_outliers(df, 'extreme_outliers.png')
 
         print(f"\n✅ Analysis complete! Check the generated PNG files for detailed charts.")
 

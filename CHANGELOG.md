@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.3.0 - Comprehensive Testing & Improved Visualizations
+- Fixed visualization outlier handling - extreme values no longer compress other data
+- Comprehensive performance report rewritten based on full testing results (250 tests)
+- Added extreme outliers plot to showcase exceptional performers separately
+
 ## v2.2.0 - Research-Based Asset Selection
 - Expanded asset universe from 25 to 41 assets (23 stocks + 18 cryptos)
 - Added research-based selection methodology to avoid hindsight bias
