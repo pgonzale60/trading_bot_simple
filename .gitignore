@@ -39,7 +39,7 @@ enterprise-version/
 
 # Trading results and cache
 cache/
-data/
+data_cache/
 *.csv
 *.png
 *.db
