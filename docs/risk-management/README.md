@@ -10,6 +10,8 @@ This comprehensive risk management framework transforms dangerous gambling strat
 - **Drawdown protection** with circuit breakers
 - **Professional trade tracking** and metrics
 
+> ℹ️ Current backtests open a single position at a time. The portfolio controls documented here are already implemented in the risk engine, but portfolio-level simulations (multiple concurrent assets, rebalancing, etc.) remain future roadmap work.
+
 ## ⚠️ CRITICAL CHANGE
 
 **BEFORE (DANGEROUS):**

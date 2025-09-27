@@ -3,6 +3,8 @@
 ## What This Project Is
 Professional algorithmic trading system with **risk-first approach**. Key principle: Transform dangerous gambling strategies (95% portfolio risk) into systematic capital-preserving approaches (2% max risk per trade). Tests 7 strategies across 41 assets with comprehensive backtesting and optimization.
 
+> ⚠️ The current analytics remain **per-asset**. There is no blended portfolio return, correlation, or allocation engine yet—each run assumes the entire cash balance is deployed into one asset at a time.
+
 ## Essential Commands
 ```bash
 # Environment (ALWAYS use micromamba)

@@ -1,6 +1,11 @@
 # Changelog
 
-# v2.4.0 - Optimised Strategy Reporting
+## v2.4.1 - Clarify Per-Asset Reporting (unreleased)
+- Documented that optimisation outputs are single-asset simulations, not diversified portfolios
+- Added per-asset scope notes across README, performance report, and Claude context
+- Updated risk-management docs and multi-asset tester docstrings to explain current limitations
+
+## v2.4.0 - Optimised Strategy Reporting
 - Added multi-symbol optimiser CLI controls and backward-compatible SMA wrapper
 - Regenerated performance report with 4,160-run parameter sweep and asset-level insights
 - Updated PERFORMANCE_REPORT with optimised strategies
@@ -47,6 +52,11 @@
 - **Before**: 28/38 tests passing (73.7% success rate)
 - **After**: 38/38 tests passing (100% success rate)
 - **Focus**: Critical risk management and core functionality only
+
+# v2.1.1 - Clarify Per-Asset Reporting (unreleased)
+- Document that optimization outputs are single-asset, not diversified portfolios
+- Updated README/Claude context to highlight scope limitations and roadmap
+- Added disclaimers across risk-management docs and multi-asset tester about independent evaluations
 
 ---
 

@@ -4,6 +4,8 @@
 
 This document provides complete, runnable examples showing the risk management framework in action.
 
+> ⚠️ These examples demonstrate how the risk engine can manage multiple concurrent positions, but the main test harness still runs one asset at a time. Treat the portfolio outputs here as illustrative notebooks rather than automated reports.
+
 ## 📊 Example 1: Conservative Portfolio Manager
 
 ### Complete Script
