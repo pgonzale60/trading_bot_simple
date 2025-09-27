@@ -1,112 +1,77 @@
-# Simple Trading Bot - Claude Configuration
+# Trading Bot Simple - Claude Project Context
 
-## Project Overview
-A minimal educational trading bot for learning algorithmic trading concepts with Python. Uses Backtrader framework with Yahoo Finance data for backtesting simple strategies.
+## What This Project Is
+Professional algorithmic trading system with **risk-first approach**. Key principle: Transform dangerous gambling strategies (95% portfolio risk) into systematic capital-preserving approaches (2% max risk per trade). Tests 7 strategies across 41 assets with comprehensive backtesting and optimization.
 
-## Quick Start Commands
+## Essential Commands
 ```bash
-# Environment setup
-micromamba env create -f environment-simple.yml -y
-micromamba activate trading-bot-simple
+# Environment (ALWAYS use micromamba)
+micromamba run -n trading-bot-simple python <command>
 
-# Test system
-python test_bot.py
+# Testing (run before changes)
+python run_tests.py                                          # All 53 tests
+python -m pytest tests/test_risk_management.py              # Individual test file
 
-# Run trading bot
-python main.py
-python main.py --symbol GOOGL --short 5 --long 20
-python main.py --start 2020-01-01 --cash 50000
-
-# Debug data issues
-python -c "import yfinance as yf; print(yf.download('AAPL', period='5d'))"
+# Main execution modes (main.py orchestrates everything)
+python main.py --mode single --symbol AAPL --strategy sma    # Single backtest
+python main.py --mode multi --test-mode full                 # 250 combinations test
+python main.py --mode optimize --opt-mode multi-symbol       # Cross-asset optimization
+python main.py --mode visualize                              # Generate charts
 ```
 
-## Project Structure
+## Core Files & What They Do
+- **main.py**: CLI orchestrator - all modes route through here
+- **optimizer.py**: Parameter optimization (single + multi-symbol comprehensive)
+- **multi_asset_tester.py**: Tests strategies across 41 assets (23 stocks + 18 crypto)
+- **strategies.py**: 7 strategies (SMA, RSI, MACD, Bollinger, EMA, Momentum, BuyHold)
+- **risk_management.py**: Core 2% risk engine - NEVER bypass this
+- **data.py**: Yahoo Finance fetching with caching
+- **results_visualizer.py**: Charts and analysis
+
+## Key Architecture Principles
+- **Risk-first**: Every strategy MUST include 2% max risk per trade
+- **Professional standards**: No gambling, systematic position sizing only
+- **Comprehensive testing**: 53 unit tests must pass, backtests across multiple assets
+- **Attribution honesty**: Returns come from asset selection, not strategy timing
+- **Caching**: Data and results cached to avoid re-downloading
+
+## Output Files to Expect
 ```
-├── main.py              # Entry point with CLI arguments
-├── strategy.py          # SMA crossover strategy (Backtrader)
-├── data.py             # Yahoo Finance data fetching
-├── visualization.py    # Performance summaries and charts
-├── test_bot.py         # System verification script
-└── environment-simple.yml  # Dependencies
-```
+# Multi-symbol optimization (comprehensive)
+multi_symbol_optimization_all_20250925_143022.json      # All 41 assets
+multi_symbol_optimization_stocks_20250925_143022.json   # 23 stocks only
+multi_symbol_optimization_crypto_20250925_143022.json   # 18 crypto only
 
-## Core Dependencies
-- **backtrader**: Trading strategy framework
-- **yfinance**: Free market data from Yahoo Finance
-- **pandas**: Data manipulation
-- **matplotlib**: Chart visualization
-- **numpy**: Numerical calculations
-
-## Code Guidelines
-- Keep it simple - this is for learning, not production
-- Use descriptive variable names for financial concepts
-- Add comments explaining trading logic
-- Handle data fetch errors gracefully
-- Print clear messages for buy/sell signals
-
-## Common Issues & Solutions
-
-### Data Problems
-```bash
-# Yahoo Finance rate limiting
-# Solution: Add delays between requests or use smaller date ranges
-
-# Missing data for symbol
-# Solution: Try different symbols (AAPL, GOOGL, SPY work well)
-
-# Network/SSL issues
-# Solution: Try from different network environment
-
-# Charts not showing
-# Solution: Charts may not work in SSH/headless environments
+# Single-symbol optimization
+optimization_rsi_AAPL_20200101.csv                      # Single strategy
+optimization_all_strategies_BTC-USD_20200101.csv        # All strategies
+optimization_quick_TSLA_20200101.csv                    # Quick test
 ```
 
-### Strategy Development
-```python
-# Current strategy: SMA Crossover
-# Buy: 10-day SMA > 30-day SMA
-# Sell: 10-day SMA < 30-day SMA
+## Development Guidelines
+- **Test first**: Run `python run_tests.py` before suggesting changes
+- **Risk management**: Never modify risk_management.py without deep understanding
+- **Code style**: Follow existing patterns, especially in strategies.py
+- **Symbol handling**: Some symbols may fail (SQ delisted) - system handles gracefully
+- **Performance**: Multi-symbol optimization takes significant time (1000+ backtests)
 
-# Experiment ideas:
-# - Different periods (5/20, 15/50)
-# - Add RSI indicator
-# - Include stop-loss rules
-# - Try different stocks
-```
+## Common Issues Claude Should Know
+- **Data issues**: Yahoo Finance can be flaky, system has retry logic and caching
+- **Missing symbols**: SQ is delisted, system gracefully skips failed symbols
+- **Long runtimes**: Multi-symbol optimization across 41 assets takes 10+ minutes
+- **Memory usage**: Large backtests can consume significant memory
+- **Commission model**: All backtests include 0.1% commission (realistic)
 
-## Testing Approach
-- `test_bot.py` verifies all imports and basic functionality
-- Test with known stable stocks (AAPL, SPY) first
-- Use recent date ranges (last 1-2 years) for reliability
-- Compare results across different parameter combinations
+## What Success Looks Like
+- All 53 tests passing
+- Risk management preventing account destruction (no >2% position sizes)
+- Comprehensive cross-asset analysis showing which strategies work for which symbols
+- Buy & Hold baseline comparisons (most strategies DON'T beat it)
+- Professional attribution analysis (asset selection > strategy timing)
 
-## Development Workflow
-1. Test changes with `python test_bot.py`
-2. Run quick backtest: `python main.py --start 2023-01-01`
-3. Try different parameters to understand strategy behavior
-4. Experiment with new stocks and time periods
-
-## File Purposes
-- **main.py**: CLI interface, orchestrates everything
-- **strategy.py**: Contains the SMA crossover logic in Backtrader format
-- **data.py**: Handles Yahoo Finance API calls and data formatting
-- **visualization.py**: Creates performance summaries and handles chart display
-- **test_bot.py**: Verifies environment setup and basic functionality
-
-## Learning Goals
-- Understand how algorithmic trading strategies work
-- Learn backtesting concepts and limitations
-- Experiment with technical indicators
-- See how parameter changes affect performance
-- Understand buy/sell signal generation
-
-## Next Steps for Learning
-- Try different moving average periods
-- Test on various stocks and time periods
-- Add transaction costs to backtesting
-- Implement other indicators (RSI, MACD)
-- Study why some periods/stocks work better than others
-
-## Enterprise Version
-Complex production-ready specifications are archived in `enterprise-version/` directory for future reference.
+## Important Warnings
+- **NEVER** suggest bypassing risk management for "better returns"
+- **NEVER** assume strategies will work without testing across multiple assets
+- **NEVER** ignore the 2% risk limit - it's the core principle
+- **ALWAYS** run tests before code changes
+- **REMEMBER** past performance ≠ future results (backtesting limitations)

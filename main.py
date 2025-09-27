@@ -74,7 +74,7 @@ def main():
 
     # Single test parameters
     parser.add_argument('--symbol', default='AAPL', help='Stock symbol')
-    parser.add_argument('--strategy', default='sma', help='Strategy name')
+    parser.add_argument('--strategy', default=None, help='Strategy name (defaults to SMA when omitted)')
     parser.add_argument('--start', default='2020-01-01', help='Start date YYYY-MM-DD')
     parser.add_argument('--cash', type=float, default=10000, help='Starting cash')
 
@@ -88,6 +88,12 @@ def main():
     # Multi-asset testing
     parser.add_argument('--test-mode', choices=['quick', 'full', 'stocks', 'crypto'],
                        default='quick', help='Multi-asset test mode')
+
+    # Optimization parameters
+    parser.add_argument('--opt-mode', choices=['single', 'all', 'quick', 'multi-symbol'], default='quick',
+                       help='Optimization mode: single strategy, all strategies, quick test, or multi-symbol comprehensive')
+    parser.add_argument('--opt-symbols', choices=['all', 'stocks', 'crypto'], default='all',
+                       help='For multi-symbol optimization: which symbols to include')
 
     # Caching
     parser.add_argument('--no-cache', action='store_true', help='Disable data and results caching')
@@ -110,13 +116,14 @@ def main():
     if args.mode == 'single':
         # Single strategy test (legacy mode)
         strategy_params = {}
+        strategy_name = args.strategy or 'sma'
 
-        if args.strategy in ['sma', 'ema']:
+        if strategy_name in ['sma', 'ema']:
             strategy_params = {'short_period': args.short, 'long_period': args.long}
-        elif args.strategy == 'rsi':
+        elif strategy_name == 'rsi':
             strategy_params = {'rsi_period': args.rsi_period, 'rsi_low': args.rsi_low, 'rsi_high': args.rsi_high}
 
-        run_single_test(args.symbol, args.strategy, args.start, args.cash, use_cache, **strategy_params)
+        run_single_test(args.symbol, strategy_name, args.start, args.cash, use_cache, **strategy_params)
 
     elif args.mode == 'multi':
         # Multi-asset strategy comparison
@@ -146,7 +153,20 @@ def main():
             start_date=args.start,
             cash=args.cash
         )
-        optimizer.quick_test()
+
+        print("🔬 TRADING STRATEGY OPTIMIZER")
+        print("Finding the best parameters for your strategies...")
+
+        selected_strategy = args.strategy
+
+        if args.opt_mode == 'single':
+            optimizer.test_single_strategy(selected_strategy or 'sma')
+        elif args.opt_mode == 'all':
+            optimizer.test_all_strategies()
+        elif args.opt_mode == 'multi-symbol':
+            optimizer.optimize_all_symbols(symbols_type=args.opt_symbols)
+        else:  # quick mode
+            optimizer.quick_test(selected_strategy)
 
     elif args.mode == 'visualize':
         # Generate visualization report
