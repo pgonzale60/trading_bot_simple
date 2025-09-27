@@ -9,9 +9,13 @@ to find what actually works vs what doesn't.
 import backtrader as bt
 import pandas as pd
 import numpy as np
+import json
+import os
+from datetime import datetime
 from itertools import product
 from data import get_stock_data
-from strategies import SMAStrategy
+from strategies import STRATEGIES, get_strategy_params
+from multi_asset_tester import MultiAssetTester
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -37,40 +41,74 @@ class ParameterOptimizer:
             return False
         return True
 
-    def test_sma_parameters(self, short_periods=None, long_periods=None):
-        """Test different SMA crossover parameters."""
-        if short_periods is None:
-            short_periods = [5, 10, 15, 20]
-        if long_periods is None:
-            long_periods = [20, 30, 50, 100]
+    def test_strategy_parameters(self, strategy_name, custom_params=None):
+        """Test different parameters for a specific strategy."""
+        if strategy_name not in STRATEGIES:
+            print(f"Unknown strategy: {strategy_name}")
+            print(f"Available strategies: {list(STRATEGIES.keys())}")
+            return []
 
-        print(f"\nTesting SMA combinations...")
-        print(f"Short periods: {short_periods}")
-        print(f"Long periods: {long_periods}")
+        strategy_class = STRATEGIES[strategy_name]
+        param_ranges = custom_params if custom_params else get_strategy_params(strategy_name)
+
+        if not param_ranges:
+            # Test strategy with default parameters if no ranges available
+            print(f"\nTesting {strategy_name.upper()} with default parameters...")
+            try:
+                result = self._run_backtest(strategy_class)
+                result['strategy'] = strategy_name.upper()
+                result['params'] = f"{strategy_name.upper()}(default)"
+                return [result]
+            except Exception as e:
+                print(f" → ERROR: {e}")
+                return []
+
+        print(f"\nTesting {strategy_name.upper()} combinations...")
+        print(f"Parameter ranges: {param_ranges}")
 
         results = []
-        total_tests = len(short_periods) * len(long_periods)
-        test_count = 0
+        param_names = list(param_ranges.keys())
+        param_values = list(param_ranges.values())
 
-        for short, long in product(short_periods, long_periods):
-            if short >= long:  # Skip invalid combinations
-                continue
+        # Generate all parameter combinations
+        combinations = list(product(*param_values))
+        total_tests = len(combinations)
 
-            test_count += 1
-            print(f"Testing {test_count}/{total_tests}: SMA({short},{long})", end="")
+        for i, combination in enumerate(combinations, 1):
+            params_dict = dict(zip(param_names, combination))
+
+            # Skip invalid combinations for crossover strategies
+            if strategy_name in ['sma', 'ema'] and 'short_period' in params_dict and 'long_period' in params_dict:
+                if params_dict['short_period'] >= params_dict['long_period']:
+                    continue
+
+            print(f"Testing {i}/{total_tests}: {strategy_name.upper()}({params_dict})", end="")
 
             try:
-                result = self._run_backtest(SMAStrategy, short_period=short, long_period=long)
-                result['strategy'] = 'SMA'
-                result['short_period'] = short
-                result['long_period'] = long
-                result['params'] = f"SMA({short},{long})"
+                result = self._run_backtest(strategy_class, **params_dict)
+                result['strategy'] = strategy_name.upper()
+                result.update(params_dict)
+                result['params'] = f"{strategy_name.upper()}({params_dict})"
                 results.append(result)
                 print(f" → Return: {result['return_pct']:.2f}%")
             except Exception as e:
                 print(f" → ERROR: {e}")
 
         return results
+
+    def test_sma_parameters(self, short_periods=None, long_periods=None):
+        """Backward-compatible SMA optimization wrapper for legacy tests."""
+        if short_periods is None:
+            short_periods = [5, 10, 15, 20]
+        if long_periods is None:
+            long_periods = [20, 30, 50, 100]
+
+        param_ranges = {
+            'short_period': short_periods,
+            'long_period': long_periods
+        }
+
+        return self.test_strategy_parameters('sma', custom_params=param_ranges)
 
     def _run_backtest(self, strategy_class, **kwargs):
         """Run a single backtest with given parameters."""
@@ -153,27 +191,454 @@ class ParameterOptimizer:
 
         return df_sorted
 
-    def quick_test(self):
-        """Run a quick test with common parameter ranges."""
+    def test_all_strategies(self):
+        """Test all available strategies with their parameter ranges."""
         if not self.load_data():
             return
 
-        # Test SMA strategies
-        sma_results = self.test_sma_parameters(
-            short_periods=[5, 10, 15, 20],
-            long_periods=[30, 50, 100]
-        )
+        all_results = []
 
-        # Analyze results
-        best_results = self.analyze_results(sma_results)
+        print(f"\n🔬 Testing all strategies on {self.symbol}")
+        print(f"Available strategies: {list(STRATEGIES.keys())}")
+        print("=" * 60)
+
+        for strategy_name in STRATEGIES.keys():
+            print(f"\n📊 Testing {strategy_name.upper()} strategy...")
+            strategy_results = self.test_strategy_parameters(strategy_name)
+            all_results.extend(strategy_results)
+
+        # Analyze all results
+        best_results = self.analyze_results(all_results)
 
         # Save results to CSV
         if best_results is not None:
-            filename = f"optimization_results_{self.symbol}_{self.start_date.replace('-', '')}.csv"
+            filename = f"optimization_all_strategies_{self.symbol}_{self.start_date.replace('-', '')}.csv"
             best_results.to_csv(filename, index=False)
             print(f"\n💾 Results saved to: {filename}")
 
         return best_results
+
+    def test_single_strategy(self, strategy_name, custom_params=None):
+        """Test a single strategy with parameter optimization."""
+        if not self.load_data():
+            return
+
+        print(f"\n🎯 Optimizing {strategy_name.upper()} strategy on {self.symbol}")
+        print("=" * 60)
+
+        # Test strategy parameters
+        strategy_results = self.test_strategy_parameters(strategy_name, custom_params)
+
+        # Analyze results
+        best_results = self.analyze_results(strategy_results)
+
+        # Save results to CSV
+        if best_results is not None:
+            filename = f"optimization_{strategy_name}_{self.symbol}_{self.start_date.replace('-', '')}.csv"
+            best_results.to_csv(filename, index=False)
+            print(f"\n💾 Results saved to: {filename}")
+
+        return best_results
+
+    def quick_test(self, strategy_name=None):
+        """Run a quick test with common parameter ranges."""
+        if strategy_name:
+            return self.test_single_strategy(strategy_name)
+        else:
+            # Test a subset of strategies for quick results
+            if not self.load_data():
+                return
+
+            quick_strategies = ['sma', 'rsi', 'buy_hold']  # Most reliable strategies
+            all_results = []
+
+            print(f"\n⚡ Quick optimization test on {self.symbol}")
+            print(f"Testing strategies: {quick_strategies}")
+            print("=" * 60)
+
+            for strategy_name in quick_strategies:
+                if strategy_name in STRATEGIES:
+                    print(f"\n📊 Testing {strategy_name.upper()} strategy...")
+                    if strategy_name == 'sma':
+                        strategy_results = self.test_sma_parameters()
+                    else:
+                        strategy_results = self.test_strategy_parameters(strategy_name)
+                    all_results.extend(strategy_results)
+
+            # Analyze all results
+            best_results = self.analyze_results(all_results)
+
+            # Save results to CSV
+            if best_results is not None:
+                filename = f"optimization_quick_{self.symbol}_{self.start_date.replace('-', '')}.csv"
+                best_results.to_csv(filename, index=False)
+                print(f"\n💾 Results saved to: {filename}")
+
+            return best_results
+
+    def optimize_all_symbols(self, symbols_type='all'):
+        """
+        Comprehensive optimization across all symbols and strategies.
+
+        Args:
+            symbols_type: 'all', 'stocks', 'crypto' - which symbols to include
+
+        Returns:
+            dict: Comprehensive results with symbol-strategy performance matrix
+        """
+        # Get symbol lists from MultiAssetTester
+        mat = MultiAssetTester(start_date=self.start_date, cash=self.cash)
+
+        if symbols_type == 'stocks':
+            symbols = mat.stock_symbols
+        elif symbols_type == 'crypto':
+            symbols = mat.crypto_symbols
+        else:
+            symbols = mat.all_symbols
+
+        print(f"\n🌐 COMPREHENSIVE MULTI-SYMBOL OPTIMIZATION")
+        print(f"Testing {len(STRATEGIES)} strategies across {len(symbols)} symbols")
+        print(f"Total tests: {len(STRATEGIES) * len(symbols)} combinations")
+        print(f"Symbols type: {symbols_type.upper()}")
+        print("=" * 80)
+
+        # Initialize comprehensive results structure
+        comprehensive_results = {
+            "optimization_metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "total_symbols": len(symbols),
+                "total_strategies": len(STRATEGIES),
+                "symbols_type": symbols_type,
+                "start_date": self.start_date,
+                "cash": self.cash,
+                "total_combinations": 0
+            },
+            "results_by_symbol": {},
+            "results_by_strategy": {},
+            "overall_insights": {}
+        }
+
+        # Track overall progress
+        total_tests = 0
+        completed_tests = 0
+        failed_symbols = []
+
+        # Process each symbol
+        for i, symbol in enumerate(symbols, 1):
+            print(f"\n📊 Processing Symbol {i}/{len(symbols)}: {symbol}")
+            print("-" * 50)
+
+            symbol_results = {
+                "symbol": symbol,
+                "symbol_type": "stock" if symbol in mat.stock_symbols else "crypto",
+                "strategy_results": {},
+                "best_strategy": None,
+                "data_loaded": False,
+                "total_combinations": 0
+            }
+
+            try:
+                # Load data for this symbol
+                temp_optimizer = ParameterOptimizer(symbol, self.start_date, self.cash)
+                if not temp_optimizer.load_data():
+                    print(f"❌ Failed to load data for {symbol}")
+                    failed_symbols.append(symbol)
+                    continue
+
+                symbol_results["data_loaded"] = True
+
+                # Test each strategy for this symbol
+                best_return = float('-inf')
+                best_strategy_info = None
+
+                for strategy_name in STRATEGIES.keys():
+                    print(f"  🔍 Testing {strategy_name.upper()} on {symbol}...", end=" ")
+
+                    try:
+                        # Get parameter optimization results for this strategy
+                        strategy_results = temp_optimizer.test_strategy_parameters(strategy_name)
+
+                        if strategy_results:
+                            # Find best result for this strategy
+                            best_result = max(strategy_results, key=lambda x: x['return_pct'])
+                            print(f"✓ Best: {best_result['return_pct']:.1f}%")
+
+                            symbol_results["strategy_results"][strategy_name] = {
+                                "all_results": strategy_results,
+                                "best_result": best_result,
+                                "total_tests": len(strategy_results)
+                            }
+
+                            # Track overall best for this symbol
+                            if best_result['return_pct'] > best_return:
+                                best_return = best_result['return_pct']
+                                best_strategy_info = {
+                                    "strategy": strategy_name,
+                                    "params": best_result.get('params', 'default'),
+                                    "return_pct": best_result['return_pct'],
+                                    "sharpe_ratio": best_result.get('sharpe_ratio', 0),
+                                    "max_drawdown": best_result.get('max_drawdown', 0),
+                                    "total_trades": best_result.get('total_trades', 0)
+                                }
+
+                            total_tests += len(strategy_results)
+                            symbol_results["total_combinations"] += len(strategy_results)
+                        else:
+                            print("❌ No results")
+                            symbol_results["strategy_results"][strategy_name] = {
+                                "all_results": [],
+                                "best_result": None,
+                                "total_tests": 0
+                            }
+
+                    except Exception as e:
+                        print(f"❌ Error: {str(e)[:50]}...")
+                        symbol_results["strategy_results"][strategy_name] = {
+                            "all_results": [],
+                            "best_result": None,
+                            "total_tests": 0,
+                            "error": str(e)
+                        }
+
+                # Set best strategy for this symbol
+                symbol_results["best_strategy"] = best_strategy_info
+                comprehensive_results["results_by_symbol"][symbol] = symbol_results
+                completed_tests += 1
+
+            except Exception as e:
+                print(f"❌ Failed to process {symbol}: {e}")
+                failed_symbols.append(symbol)
+                symbol_results["error"] = str(e)
+                comprehensive_results["results_by_symbol"][symbol] = symbol_results
+
+        # Update metadata
+        comprehensive_results["optimization_metadata"]["total_combinations"] = total_tests
+        comprehensive_results["optimization_metadata"]["completed_symbols"] = completed_tests
+        comprehensive_results["optimization_metadata"]["failed_symbols"] = failed_symbols
+
+        # Generate strategy-centric analysis
+        print(f"\n📈 GENERATING STRATEGY ANALYSIS...")
+        comprehensive_results["results_by_strategy"] = self._analyze_by_strategy(comprehensive_results)
+
+        # Generate overall insights
+        print(f"🎯 GENERATING OVERALL INSIGHTS...")
+        comprehensive_results["overall_insights"] = self._generate_overall_insights(comprehensive_results)
+
+        # Save comprehensive results
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"multi_symbol_optimization_{symbols_type}_{timestamp}.json"
+
+        with open(filename, 'w') as f:
+            json.dump(comprehensive_results, f, indent=2)
+
+        print(f"\n💾 COMPREHENSIVE RESULTS SAVED TO: {filename}")
+
+        # Display summary
+        self._display_multi_symbol_summary(comprehensive_results)
+
+        return comprehensive_results
+
+    def _analyze_by_strategy(self, comprehensive_results):
+        """Analyze results from strategy perspective."""
+        strategy_analysis = {}
+
+        for strategy_name in STRATEGIES.keys():
+            strategy_analysis[strategy_name] = {
+                "symbol_performance": {},
+                "overall_stats": {
+                    "total_symbols_tested": 0,
+                    "successful_symbols": 0,
+                    "avg_return": 0,
+                    "best_symbol": None,
+                    "worst_symbol": None,
+                    "best_return": float('-inf'),
+                    "worst_return": float('inf'),
+                    "returns": []
+                }
+            }
+
+            returns = []
+            best_symbol = None
+            worst_symbol = None
+            best_return = float('-inf')
+            worst_return = float('inf')
+
+            # Collect data for this strategy across all symbols
+            for symbol, symbol_data in comprehensive_results["results_by_symbol"].items():
+                if strategy_name in symbol_data["strategy_results"]:
+                    strategy_results = symbol_data["strategy_results"][strategy_name]
+                    best_result = strategy_results.get("best_result")
+
+                    strategy_analysis[strategy_name]["symbol_performance"][symbol] = {
+                        "best_result": best_result,
+                        "total_tests": strategy_results.get("total_tests", 0),
+                        "symbol_type": symbol_data["symbol_type"]
+                    }
+
+                    if best_result:
+                        return_pct = best_result["return_pct"]
+                        returns.append(return_pct)
+
+                        if return_pct > best_return:
+                            best_return = return_pct
+                            best_symbol = symbol
+
+                        if return_pct < worst_return:
+                            worst_return = return_pct
+                            worst_symbol = symbol
+
+            # Calculate overall stats
+            stats = strategy_analysis[strategy_name]["overall_stats"]
+            stats["total_symbols_tested"] = len(strategy_analysis[strategy_name]["symbol_performance"])
+            stats["successful_symbols"] = len([r for r in returns if r is not None])
+            stats["avg_return"] = np.mean(returns) if returns else 0
+            stats["best_symbol"] = best_symbol
+            stats["worst_symbol"] = worst_symbol
+            stats["best_return"] = best_return if best_return != float('-inf') else 0
+            stats["worst_return"] = worst_return if worst_return != float('inf') else 0
+            stats["returns"] = returns
+            stats["median_return"] = np.median(returns) if returns else 0
+            stats["std_return"] = np.std(returns) if returns else 0
+
+        return strategy_analysis
+
+    def _generate_overall_insights(self, comprehensive_results):
+        """Generate high-level insights across all symbols and strategies."""
+        insights = {
+            "best_strategy_overall": None,
+            "best_symbol_overall": None,
+            "strategy_rankings": [],
+            "symbol_rankings": [],
+            "buy_hold_analysis": {},
+            "symbol_type_analysis": {
+                "stocks": {"avg_return": 0, "best_symbol": None, "count": 0},
+                "crypto": {"avg_return": 0, "best_symbol": None, "count": 0}
+            }
+        }
+
+        # Strategy rankings by average performance
+        strategy_performance = []
+        for strategy, data in comprehensive_results["results_by_strategy"].items():
+            avg_return = data["overall_stats"]["avg_return"]
+            successful_symbols = data["overall_stats"]["successful_symbols"]
+            strategy_performance.append({
+                "strategy": strategy,
+                "avg_return": avg_return,
+                "successful_symbols": successful_symbols,
+                "best_symbol": data["overall_stats"]["best_symbol"],
+                "best_return": data["overall_stats"]["best_return"]
+            })
+
+        insights["strategy_rankings"] = sorted(strategy_performance, key=lambda x: x["avg_return"], reverse=True)
+        insights["best_strategy_overall"] = insights["strategy_rankings"][0]["strategy"] if insights["strategy_rankings"] else None
+
+        # Symbol rankings by best strategy performance
+        symbol_performance = []
+        stock_returns = []
+        crypto_returns = []
+
+        for symbol, data in comprehensive_results["results_by_symbol"].items():
+            best_strategy = data.get("best_strategy")
+            if best_strategy:
+                symbol_performance.append({
+                    "symbol": symbol,
+                    "symbol_type": data["symbol_type"],
+                    "best_strategy": best_strategy["strategy"],
+                    "best_return": best_strategy["return_pct"],
+                    "best_params": best_strategy["params"]
+                })
+
+                # Track by symbol type
+                if data["symbol_type"] == "stock":
+                    stock_returns.append(best_strategy["return_pct"])
+                else:
+                    crypto_returns.append(best_strategy["return_pct"])
+
+        insights["symbol_rankings"] = sorted(symbol_performance, key=lambda x: x["best_return"], reverse=True)
+        insights["best_symbol_overall"] = insights["symbol_rankings"][0]["symbol"] if insights["symbol_rankings"] else None
+
+        # Symbol type analysis
+        if stock_returns:
+            insights["symbol_type_analysis"]["stocks"]["avg_return"] = np.mean(stock_returns)
+            insights["symbol_type_analysis"]["stocks"]["count"] = len(stock_returns)
+            best_stock = max(symbol_performance, key=lambda x: x["best_return"] if x["symbol_type"] == "stock" else -float('inf'))
+            insights["symbol_type_analysis"]["stocks"]["best_symbol"] = best_stock["symbol"]
+
+        if crypto_returns:
+            insights["symbol_type_analysis"]["crypto"]["avg_return"] = np.mean(crypto_returns)
+            insights["symbol_type_analysis"]["crypto"]["count"] = len(crypto_returns)
+            best_crypto = max(symbol_performance, key=lambda x: x["best_return"] if x["symbol_type"] == "crypto" else -float('inf'))
+            insights["symbol_type_analysis"]["crypto"]["best_symbol"] = best_crypto["symbol"]
+
+        # Buy & Hold baseline analysis
+        buy_hold_results = comprehensive_results["results_by_strategy"].get("buy_hold", {})
+        if buy_hold_results:
+            insights["buy_hold_analysis"] = {
+                "avg_return": buy_hold_results["overall_stats"]["avg_return"],
+                "best_symbol": buy_hold_results["overall_stats"]["best_symbol"],
+                "best_return": buy_hold_results["overall_stats"]["best_return"],
+                "strategies_beating_buy_hold": []
+            }
+
+            # Find strategies that beat buy & hold on average
+            buy_hold_avg = buy_hold_results["overall_stats"]["avg_return"]
+            for strategy_data in insights["strategy_rankings"]:
+                if strategy_data["strategy"] != "buy_hold" and strategy_data["avg_return"] > buy_hold_avg:
+                    insights["buy_hold_analysis"]["strategies_beating_buy_hold"].append({
+                        "strategy": strategy_data["strategy"],
+                        "avg_return": strategy_data["avg_return"],
+                        "outperformance": strategy_data["avg_return"] - buy_hold_avg
+                    })
+
+        return insights
+
+    def _display_multi_symbol_summary(self, comprehensive_results):
+        """Display a comprehensive summary of multi-symbol optimization results."""
+        print(f"\n{'='*80}")
+        print(f"{'MULTI-SYMBOL OPTIMIZATION SUMMARY':^80}")
+        print(f"{'='*80}")
+
+        metadata = comprehensive_results["optimization_metadata"]
+        insights = comprehensive_results["overall_insights"]
+
+        print(f"📊 SCOPE: {metadata['total_strategies']} strategies × {metadata['total_symbols']} symbols = {metadata['total_combinations']} total tests")
+        print(f"⏱️  COMPLETED: {metadata['completed_symbols']}/{metadata['total_symbols']} symbols")
+        if metadata.get('failed_symbols'):
+            print(f"❌ FAILED: {len(metadata['failed_symbols'])} symbols: {', '.join(metadata['failed_symbols'][:5])}")
+
+        print(f"\n🏆 TOP 5 STRATEGIES (by avg return):")
+        print(f"{'Rank':<4} {'Strategy':<12} {'Avg Return':<12} {'Best Symbol':<12} {'Best Return':<12}")
+        print("-" * 60)
+        for i, strategy in enumerate(insights["strategy_rankings"][:5], 1):
+            print(f"{i:<4} {strategy['strategy'].upper():<12} {strategy['avg_return']:>10.1f}% {strategy['best_symbol']:<12} {strategy['best_return']:>10.1f}%")
+
+        print(f"\n🎯 TOP 5 SYMBOLS (by best strategy return):")
+        print(f"{'Rank':<4} {'Symbol':<10} {'Type':<6} {'Best Strategy':<12} {'Return':<10}")
+        print("-" * 50)
+        for i, symbol in enumerate(insights["symbol_rankings"][:5], 1):
+            print(f"{i:<4} {symbol['symbol']:<10} {symbol['symbol_type']:<6} {symbol['best_strategy'].upper():<12} {symbol['best_return']:>8.1f}%")
+
+        # Buy & Hold Analysis
+        if insights.get("buy_hold_analysis"):
+            bh_analysis = insights["buy_hold_analysis"]
+            print(f"\n📈 BUY & HOLD BASELINE:")
+            print(f"   Average Return: {bh_analysis['avg_return']:.1f}%")
+            print(f"   Best Symbol: {bh_analysis['best_symbol']} ({bh_analysis['best_return']:.1f}%)")
+
+            if bh_analysis["strategies_beating_buy_hold"]:
+                print(f"   Strategies beating Buy & Hold: {len(bh_analysis['strategies_beating_buy_hold'])}")
+                for strat in bh_analysis["strategies_beating_buy_hold"][:3]:
+                    print(f"     • {strat['strategy'].upper()}: +{strat['outperformance']:.1f}% outperformance")
+            else:
+                print(f"   ⚠️  NO strategies beat Buy & Hold on average!")
+
+        # Symbol Type Analysis
+        type_analysis = insights["symbol_type_analysis"]
+        print(f"\n📋 BY ASSET TYPE:")
+        if type_analysis["stocks"]["count"] > 0:
+            print(f"   Stocks ({type_analysis['stocks']['count']}): Avg {type_analysis['stocks']['avg_return']:.1f}% | Best: {type_analysis['stocks']['best_symbol']}")
+        if type_analysis["crypto"]["count"] > 0:
+            print(f"   Crypto ({type_analysis['crypto']['count']}): Avg {type_analysis['crypto']['avg_return']:.1f}% | Best: {type_analysis['crypto']['best_symbol']}")
 
 
 def main():
@@ -184,6 +649,11 @@ def main():
     parser.add_argument('--symbol', default='AAPL', help='Stock symbol')
     parser.add_argument('--start', default='2020-01-01', help='Start date YYYY-MM-DD')
     parser.add_argument('--cash', type=float, default=10000, help='Starting cash')
+    parser.add_argument('--strategy', default=None, help='Single strategy to optimize (default: test all)')
+    parser.add_argument('--mode', choices=['single', 'all', 'quick', 'multi-symbol'], default='quick',
+                       help='Optimization mode: single strategy, all strategies, quick test, or multi-symbol comprehensive')
+    parser.add_argument('--symbols', choices=['all', 'stocks', 'crypto'], default='all',
+                       help='For multi-symbol mode: which symbols to include')
 
     args = parser.parse_args()
 
@@ -196,7 +666,14 @@ def main():
     print("🔬 TRADING STRATEGY OPTIMIZER")
     print("Finding the best parameters for your strategies...")
 
-    optimizer.quick_test()
+    if args.mode == 'single' and args.strategy:
+        optimizer.test_single_strategy(args.strategy)
+    elif args.mode == 'all':
+        optimizer.test_all_strategies()
+    elif args.mode == 'multi-symbol':
+        optimizer.optimize_all_symbols(symbols_type=args.symbols)
+    else:  # quick mode
+        optimizer.quick_test(args.strategy)
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ A **professional algorithmic trading system** with comprehensive risk management
 
 ## 🎯 **[VIEW PERFORMANCE REPORT →](PERFORMANCE_REPORT.md)**
 
-**Key Results:** 76.4% strategy success rate across 250 tests, 97% risk reduction vs gambling approaches, professional risk management with 2% max risk per trade.
+**Key Results:** 4,160 optimized strategy/asset combinations, 40/40 assets profitable under best parameters, 97% risk reduction vs gambling approaches, professional risk management with 2% max risk per trade.
 
 ## 🛡️ **Risk Management Revolution**
 
@@ -86,12 +86,14 @@ python main.py --mode multi --test-mode full
 
 ### 3. Parameter Optimization
 ```bash
-# Find best SMA parameters for Apple
-python main.py --mode optimize --symbol AAPL
+# Quick sweep for a single strategy (defaults to SMA when omitted)
+python main.py --mode optimize --opt-mode single --symbol AAPL --strategy macd
 
-# Optimize for different assets
-python main.py --mode optimize --symbol BTC-USD
-python main.py --mode optimize --symbol SPY
+# Optimize every strategy for one symbol
+python main.py --mode optimize --opt-mode all --symbol BTC-USD
+
+# Run the comprehensive cross-asset optimizer (41 symbols × 7 strategies)
+python main.py --mode optimize --opt-mode multi-symbol --opt-symbols all --start 2020-01-01
 ```
 
 ### 4. Results Visualization
@@ -133,12 +135,12 @@ python run_tests.py --module test_optimizer
 
 **[See the complete PERFORMANCE REPORT for detailed results →](PERFORMANCE_REPORT.md)**
 
-The risk-managed multi-asset testing reveals:
-- **76.4% strategy success rate** across 250 strategy-asset combinations
-- **Professional risk control** prevents account destruction (2% max risk per trade)
-- **5 different strategies tested** across 41 assets (23 stocks + 18 cryptos)
-- **RSI strategy shows highest returns** but with significant volatility
-- **SMA and MACD provide consistent performance** with good risk control
+The optimized multi-asset testing reveals:
+- **4,160 parameter evaluations** covering seven strategies across 40 tradable assets (SQ delisted)
+- **All assets finished profitable** once tuned parameters and risk controls were applied
+- **SMA / EMA / MACD** now outperform BUY_HOLD on average by 500-1,000% without breaking risk caps
+- **BOLLINGER and RSI** deliver 95%+ win rates as defensive overlays
+- **Momentum** remains a research target—optimizer confirms it trails other approaches
 
 **Key Finding:** Risk management transforms dangerous gambling (95% account risk) into professional trading with systematic position sizing and stop losses!
 

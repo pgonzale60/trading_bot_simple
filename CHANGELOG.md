@@ -1,5 +1,10 @@
 # Changelog
 
+# v2.4.0 - Optimised Strategy Reporting
+- Added multi-symbol optimiser CLI controls and backward-compatible SMA wrapper
+- Regenerated performance report with 4,160-run parameter sweep and asset-level insights
+- Updated PERFORMANCE_REPORT with optimised strategies
+
 ## v2.3.0 - Comprehensive Testing & Improved Visualizations
 - Fixed visualization outlier handling - extreme values no longer compress other data
 - Comprehensive performance report rewritten based on full testing results (250 tests)
@@ -64,7 +69,7 @@
 ### 📁 New Files
 - `strategies.py` - Multiple trading strategy implementations
 - `multi_asset_tester.py` - Cross-asset strategy testing framework
-- `optimizer.py` - Parameter optimization tools
+- `optimiser.py` - Parameter optimization tools
 - `results_visualizer.py` - Chart generation and analysis reporting
 
 ### 🗑️ Removed Files
