@@ -35,6 +35,8 @@ self.enter_long(reason="Golden Cross Signal")
 | **Max Drawdown** | 70%+ | 15% limit | **78% safer** |
 | **Portfolio Monitoring** | None | Real-time | **Complete control** |
 
+> ℹ️ Portfolio metrics explained in this document describe the risk engine's capabilities. The automated test flows still evaluate one instrument at a time, so combined portfolio performance remains future roadmap work.
+
 ## 🛡️ Core Risk Management Principles
 
 ### 1. **Fixed Risk Per Trade**

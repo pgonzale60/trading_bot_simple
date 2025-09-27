@@ -4,6 +4,9 @@ Multi-Asset Strategy Testing Framework with Caching
 
 Test strategies across multiple stocks and cryptocurrencies to find
 what works consistently across different markets.
+
+Results are generated on a per-asset basis—each backtest receives its own
+cash allocation and is not combined into a single diversified portfolio.
 """
 
 import backtrader as bt
@@ -21,7 +24,7 @@ warnings.filterwarnings('ignore')
 
 
 class MultiAssetTester:
-    """Test strategies across multiple assets with caching."""
+    """Test strategies across multiple assets with caching (evaluated independently per asset)."""
 
     def __init__(self, start_date='2020-01-01', cash=10000, cache_dir='cache'):
         self.start_date = start_date

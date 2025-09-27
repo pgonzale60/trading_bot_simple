@@ -4,6 +4,8 @@
 
 **Portfolio Heat** = Total amount of capital at risk across all open positions
 
+> ℹ️ The live test harness currently evaluates one asset at a time, so portfolio heat checks are mostly illustrative and enforced in the risk engine for forward compatibility. When combining multiple positions manually, these limits become critical.
+
 **BEFORE (Unlimited Risk):**
 ```python
 # Could have 10 positions each risking 95% = 950% portfolio risk!

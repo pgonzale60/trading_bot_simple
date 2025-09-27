@@ -7,10 +7,11 @@ This report captures the optimized multi-asset run stored in `multi_symbol_optim
 **Report Generated:** September 26, 2025  
 **Optimization Run:** `multi_symbol_optimization_all_20250926_075253.json`  
 **Test Period:** January 1, 2020 to September 25, 2025  
-**Portfolio Coverage:** 22 stocks + 18 cryptocurrencies (target list included SQ, but Yahoo Finance no longer serves data)  
+**Asset Coverage:** 22 stocks + 18 cryptocurrencies (target list included SQ, but Yahoo Finance no longer serves data)  
 **Total Parameter Tests:** 4,160 strategy/asset combinations  
 **Positive Outcomes:** 40/40 tradable assets closed positive under their best strategy  
 **Average Best-Strategy Return:** 1,904% (median 258%)
+**Important Scope Note:** Each backtest allocates the full cash balance to a single asset/strategy. Diversified portfolio returns, correlations, and allocation effects are **not** part of this analysis.
 
 ---
 
@@ -37,6 +38,8 @@ This report captures the optimized multi-asset run stored in `multi_symbol_optim
 - **BUY_HOLD**: Remains the safest baseline and still tops 13 assets, especially large-cap equities.
 - **BOLLINGER & RSI**: Provide reliable, lower-volatility alternatives with 95%+ win ratios.
 - **MOMENTUM**: Underperforms even after tuning—its zero-threshold exits miss sustained trends.
+
+> ⚠️ **Limitation:** Metrics above reflect stand-alone asset tests. Aggregated portfolio statistics (e.g., blended Sharpe, drawdown across combined holdings) remain future work.
 
 ---
 
@@ -145,7 +148,7 @@ The comprehensive analysis includes three detailed visualizations:
 
 ---
 
-## 🎯 Key Insights & Investment Recommendations
+## 🎯 Key Insights & Scenario Considerations
 
 ### **Strategic Findings**
 1. **SMA & EMA Momentum**: Optimized crossover pairs (short 5-20 vs long 50-100) now deliver the highest compounded returns.
@@ -153,15 +156,17 @@ The comprehensive analysis includes three detailed visualizations:
 3. **BUY_HOLD Backbone**: Remains the most reliable approach for mega-cap tech equities and diversified ETFs.
 4. **BOLLINGER / RSI Stability**: Tight bands and pullback entries provide downside protection while staying invested.
 
-### **Portfolio Recommendations**
-**Balanced Approach:**
+### **Hypothetical Allocation Thought Experiment**
+**If building a portfolio manually outside this tool:**
 - **Core Holdings (50%)**: BUY_HOLD on resilient equities and majors (NVDA, TSLA, BTC, ETH) to anchor the portfolio.
 - **Momentum Sleeve (30%)**: Optimized SMA/EMA allocations on breakout-prone crypto baskets.
 - **Defensive Overlay (20%)**: BOLLINGER or RSI on stocks/ETFs to dampen volatility and capture disciplined pullbacks.
 
+> These weights are illustrative only—the code base does not currently simulate blended positions or rebalancing.
+
 **Risk Management Priorities:**
 - Maintain 2% maximum risk per trade across all strategies
-- Implement portfolio heat monitoring at 8-10% maximum
+- Implement portfolio heat monitoring at 8-10% maximum when managing simultaneous positions manually
 - Use fractional position sizing for expensive assets
 - Regular rebalancing based on performance metrics
 
