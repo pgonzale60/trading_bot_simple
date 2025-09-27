@@ -8,7 +8,7 @@ import unittest
 import sys
 import os
 import pandas as pd
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -194,6 +194,84 @@ class TestParameterOptimizer(unittest.TestCase):
             self.assertIn('long_period', result)
             self.assertIn('return_pct', result)
             self.assertEqual(result['strategy'], 'SMA')
+
+    @patch('pandas.DataFrame.to_csv')
+    @patch.object(ParameterOptimizer, 'load_data', autospec=True)
+    def test_test_all_strategies_aggregates_results(self, mock_load_data, mock_to_csv):
+        """test_all_strategies should request parameters for every strategy and analyze them."""
+
+        def fake_load(instance):
+            instance.data = MagicMock()
+            return True
+
+        mock_load_data.side_effect = fake_load
+
+        def fake_results(instance, strategy_name, custom_params=None):
+            return [{
+                'strategy': strategy_name.upper(),
+                'params': f"{strategy_name.upper()}(default)",
+                'return_pct': 10.0,
+                'total_trades': 5,
+                'win_rate': 60.0,
+                'sharpe_ratio': 1.2,
+                'max_drawdown': 3.5
+            }]
+
+        with patch.object(ParameterOptimizer, 'test_strategy_parameters', autospec=True, side_effect=fake_results):
+            results_df = self.optimizer.test_all_strategies()
+
+        # Ensure we requested parameters for each registered strategy
+        self.assertEqual(results_df.iloc[0]['return_pct'], 10.0)
+        self.assertEqual(mock_load_data.call_count, 1)
+        self.assertTrue(mock_to_csv.called)
+
+    @patch('optimizer.MultiAssetTester')
+    def test_optimize_all_symbols_compiles_results(self, mock_multi_asset_tester):
+        """Comprehensive optimization should build summaries across symbols and strategies."""
+
+        tester_instance = mock_multi_asset_tester.return_value
+        tester_instance.all_symbols = ['AAPL', 'BTC-USD']
+        tester_instance.stock_symbols = ['AAPL']
+        tester_instance.crypto_symbols = ['BTC-USD']
+
+        def fake_load(instance):
+            instance.data = MagicMock()
+            return True
+
+        def fake_results(instance, strategy_name, custom_params=None):
+            base_return = 100.0 if strategy_name == 'sma' else 50.0
+            return [{
+                'strategy': strategy_name.upper(),
+                'params': f"{strategy_name.upper()}(params)",
+                'return_pct': base_return,
+                'sharpe_ratio': 1.1,
+                'max_drawdown': 4.2,
+                'total_trades': 12
+            }]
+
+        with patch.object(ParameterOptimizer, 'load_data', autospec=True) as mock_load_data, \
+                patch.object(ParameterOptimizer, 'test_strategy_parameters', autospec=True) as mock_test_params, \
+                patch('optimizer.open', mock_open(), create=True), \
+                patch('optimizer.json.dump') as mock_json_dump, \
+                patch('optimizer.datetime') as mock_datetime:
+
+            mock_load_data.side_effect = fake_load
+            mock_test_params.side_effect = fake_results
+
+            mock_now = MagicMock()
+            mock_now.isoformat.return_value = '2025-01-01T12:00:00'
+            mock_now.strftime.return_value = '20250101_120000'
+            mock_datetime.now.return_value = mock_now
+
+            with patch('builtins.print'):
+                comprehensive = self.optimizer.optimize_all_symbols(symbols_type='all')
+
+        # Validate metadata aggregation
+        metadata = comprehensive['optimization_metadata']
+        self.assertEqual(metadata['total_symbols'], 2)
+        self.assertEqual(metadata['completed_symbols'], 2)
+        self.assertEqual(metadata['total_combinations'], mock_test_params.call_count)
+        self.assertTrue(mock_json_dump.called)
 
     def test_analyze_results(self):
         """Test results analysis."""
