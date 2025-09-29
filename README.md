@@ -86,7 +86,26 @@ python main.py --mode multi --test-mode full
 
 **All tests now use AGGRESSIVE risk profile (2.5% risk per trade) by default for maximum growth potential with professional protection.**
 
-### 3. Parameter Optimization
+### 3. Portfolio Mode (Experimental)
+```bash
+# Run the early blended-portfolio scaffold across the quick sample universe
+python main.py --mode portfolio --test-mode quick
+
+# Focus on equities only within portfolio mode
+python main.py --mode portfolio --test-mode stocks
+
+# Focus on crypto sleeve only within portfolio mode
+python main.py --mode portfolio --test-mode crypto
+
+# Load the full 41-asset universe (longer runtime)
+python main.py --mode portfolio --test-mode full
+```
+
+> 🧪 Portfolio mode is in active development for v3.0.0. The current release wires
+> up orchestration so multiple assets share a single Backtrader run; upcoming
+> issues will layer on shared state, portfolio risk management, and rebalancing.
+
+### 4. Parameter Optimization
 ```bash
 # Quick sweep for a single strategy (defaults to SMA when omitted)
 python main.py --mode optimize --opt-mode single --symbol AAPL --strategy macd
@@ -98,7 +117,7 @@ python main.py --mode optimize --opt-mode all --symbol BTC-USD
 python main.py --mode optimize --opt-mode multi-symbol --opt-symbols all --start 2020-01-01
 ```
 
-### 4. Results Visualization
+### 5. Results Visualization
 ```bash
 # Generate charts and analysis from cached results
 python main.py --mode visualize
