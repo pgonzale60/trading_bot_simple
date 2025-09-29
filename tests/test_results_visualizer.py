@@ -164,6 +164,70 @@ class TestResultsVisualizer(unittest.TestCase):
         self.assertSetEqual(set(df['strategy']), {'SMA', 'MACD'})
         self.assertEqual(df.loc[df['strategy'] == 'SMA', 'asset_type'].iloc[0], 'stock')
 
+    def test_load_optimized_results_missing_file(self):
+        """Return empty DataFrame when no optimization file is present."""
+        visualizer = ResultsVisualizer(cache_dir=self.temp_dir, report_dir=self.temp_dir)
+        df = visualizer.load_optimized_results()
+        self.assertTrue(df.empty)
+
+    def test_load_optimized_results_missing_directory(self):
+        """Gracefully handle missing report directories."""
+        missing_dir = Path(self.temp_dir) / 'does_not_exist'
+        visualizer = ResultsVisualizer(cache_dir=self.temp_dir, report_dir=missing_dir)
+        df = visualizer.load_optimized_results()
+        self.assertTrue(df.empty)
+
+    def test_load_optimized_results_corrupted_file(self):
+        """Handle corrupted optimization report without raising."""
+        path = Path(self.temp_dir) / 'multi_symbol_optimization_corrupted.json'
+        path.write_text('{invalid json', encoding='utf-8')
+
+        df = self.visualizer.load_optimized_results()
+        self.assertTrue(df.empty)
+
+    def test_load_optimized_results_without_best_result(self):
+        """Skip entries lacking best_result payloads."""
+        optimization_data = {
+            "results_by_symbol": {
+                "AAPL": {"symbol_type": "stock"}
+            },
+            "results_by_strategy": {
+                "sma": {
+                    "symbol_performance": {
+                        "AAPL": {"symbol_type": "stock"}
+                    }
+                }
+            }
+        }
+
+        self.create_test_optimization_file('multi_symbol_optimization_empty.json', optimization_data)
+
+        df = self.visualizer.load_optimized_results()
+        self.assertTrue(df.empty)
+
+    @patch('results_visualizer.ResultsVisualizer.plot_strategy_performance')
+    @patch('results_visualizer.ResultsVisualizer.plot_asset_performance')
+    @patch('results_visualizer.ResultsVisualizer.plot_extreme_outliers')
+    def test_generate_full_report_falls_back_to_cache(self, mock_outliers, mock_asset, mock_strategy):
+        """When optimized data missing, fall back to cached results."""
+        cache_rows = pd.DataFrame([
+            {
+                'symbol': 'AAPL',
+                'asset_type': 'stock',
+                'strategy': 'SMA',
+                'return_pct': 50.0,
+                'win_rate': 60.0
+            }
+        ])
+
+        with patch.object(self.visualizer, 'load_optimized_results', return_value=pd.DataFrame()):
+            with patch.object(self.visualizer, 'load_all_cached_results', return_value=cache_rows):
+                self.visualizer.generate_full_report()
+
+        mock_strategy.assert_called_once()
+        mock_asset.assert_called_once()
+        mock_outliers.assert_called_once()
+
     def test_outlier_detection_logic(self):
         """Test outlier detection in strategy performance plotting."""
         # Create test DataFrame with extreme outlier
