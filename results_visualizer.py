@@ -17,8 +17,10 @@ import os
 class ResultsVisualizer:
     """Visualize trading strategy results."""
 
-    def __init__(self, cache_dir='cache'):
+    def __init__(self, cache_dir='cache', report_dir='.', report_pattern='multi_symbol_optimization_*.json'):
         self.cache_dir = cache_dir
+        self.report_dir = Path(report_dir)
+        self.report_pattern = report_pattern
         plt.style.use('default')
         sns.set_palette("husl")
 
@@ -48,6 +50,74 @@ class ResultsVisualizer:
 
         df = pd.DataFrame(all_results)
         print(f"Loaded {len(df)} results from {len(cache_files)} cache files")
+        return df
+
+    def _find_latest_optimization_file(self):
+        """Return the newest optimization summary JSON file, if available."""
+        if not self.report_dir.exists():
+            return None
+
+        candidates = sorted(
+            self.report_dir.glob(self.report_pattern),
+            key=lambda path: path.stat().st_mtime,
+            reverse=True
+        )
+
+        return candidates[0] if candidates else None
+
+    def load_optimized_results(self):
+        """Load best-per-symbol strategy results from the latest optimization run."""
+        optimization_file = self._find_latest_optimization_file()
+
+        if not optimization_file:
+            return pd.DataFrame()
+
+        try:
+            with optimization_file.open('r') as f:
+                data = json.load(f)
+        except Exception as exc:
+            print(f"Warning: Failed to load optimization report {optimization_file}: {exc}")
+            return pd.DataFrame()
+
+        symbol_metadata = {}
+        for symbol, info in data.get('results_by_symbol', {}).items():
+            symbol_metadata[symbol] = info.get('symbol_type')
+
+        rows = []
+        for strategy_name, strategy_payload in data.get('results_by_strategy', {}).items():
+            symbol_performance = strategy_payload.get('symbol_performance', {})
+            for symbol, performance in symbol_performance.items():
+                best_result = performance.get('best_result')
+                if not best_result:
+                    continue
+
+                row = {
+                    'symbol': symbol,
+                    'asset_type': performance.get('symbol_type') or symbol_metadata.get(symbol, 'unknown'),
+                    'strategy': strategy_name.upper(),
+                    'params': best_result.get('params', ''),
+                    'initial_value': best_result.get('initial_value'),
+                    'final_value': best_result.get('final_value'),
+                    'profit': best_result.get('profit'),
+                    'return_pct': best_result.get('return_pct'),
+                    'total_trades': best_result.get('total_trades', 0),
+                    'winning_trades': best_result.get('winning_trades', 0),
+                    'losing_trades': best_result.get('losing_trades', 0),
+                    'win_rate': best_result.get('win_rate', 0),
+                    'sharpe_ratio': best_result.get('sharpe_ratio', 0),
+                    'max_drawdown': best_result.get('max_drawdown', 0),
+                    'avg_trade': best_result.get('avg_trade', 0),
+                    'report_source': optimization_file.name
+                }
+
+                rows.append(row)
+
+        if not rows:
+            print(f"Warning: Optimization report {optimization_file.name} contained no best results")
+            return pd.DataFrame()
+
+        df = pd.DataFrame(rows)
+        print(f"Loaded {len(df)} optimized results from {optimization_file.name}")
         return df
 
     def plot_strategy_performance(self, df, save_path=None):
@@ -344,7 +414,10 @@ class ResultsVisualizer:
 
     def generate_full_report(self):
         """Generate a complete analysis report with visualizations."""
-        df = self.load_all_cached_results()
+        df = self.load_optimized_results()
+
+        if df.empty:
+            df = self.load_all_cached_results()
 
         if df.empty:
             print("No data available for visualization!")
