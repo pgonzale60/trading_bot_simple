@@ -12,6 +12,7 @@ import numpy as np
 import tempfile
 import os
 import json
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 import sys
 
@@ -27,7 +28,7 @@ class TestResultsVisualizer(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
-        self.visualizer = ResultsVisualizer(cache_dir=self.temp_dir)
+        self.visualizer = ResultsVisualizer(cache_dir=self.temp_dir, report_dir=self.temp_dir)
 
     def tearDown(self):
         """Clean up test fixtures."""
@@ -42,6 +43,13 @@ class TestResultsVisualizer(unittest.TestCase):
         with open(cache_path, 'w') as f:
             json.dump(cache_data, f)
         return cache_path
+
+    def create_test_optimization_file(self, filename, data):
+        """Helper to create optimization summary files."""
+        path = Path(self.temp_dir) / filename
+        with path.open('w') as handle:
+            json.dump(data, handle)
+        return path
 
     def test_load_empty_cache_directory(self):
         """Test loading from empty cache directory."""
@@ -93,6 +101,68 @@ class TestResultsVisualizer(unittest.TestCase):
         # Should handle gracefully
         df = self.visualizer.load_all_cached_results()
         self.assertTrue(df.empty, "Should handle corrupted files gracefully")
+
+    def test_load_optimized_results(self):
+        """Test loading optimized results from latest optimization report."""
+        optimization_data = {
+            "results_by_symbol": {
+                "AAPL": {"symbol_type": "stock"},
+                "BTC-USD": {"symbol_type": "crypto"}
+            },
+            "results_by_strategy": {
+                "sma": {
+                    "symbol_performance": {
+                        "AAPL": {
+                            "symbol_type": "stock",
+                            "best_result": {
+                                "initial_value": 10000,
+                                "final_value": 22000,
+                                "profit": 12000,
+                                "return_pct": 120.0,
+                                "total_trades": 20,
+                                "winning_trades": 12,
+                                "losing_trades": 8,
+                                "win_rate": 60.0,
+                                "sharpe_ratio": 1.2,
+                                "max_drawdown": 15.0,
+                                "avg_trade": 600.0,
+                                "params": "SMA({'short_period': 10, 'long_period': 30})"
+                            }
+                        }
+                    }
+                },
+                "macd": {
+                    "symbol_performance": {
+                        "BTC-USD": {
+                            "symbol_type": "crypto",
+                            "best_result": {
+                                "initial_value": 10000,
+                                "final_value": 50000,
+                                "profit": 40000,
+                                "return_pct": 400.0,
+                                "total_trades": 10,
+                                "winning_trades": 7,
+                                "losing_trades": 3,
+                                "win_rate": 70.0,
+                                "sharpe_ratio": 2.5,
+                                "max_drawdown": 25.0,
+                                "avg_trade": 4000.0,
+                                "params": "MACD({'fast_ema': 12, 'slow_ema': 26, 'signal_ema': 9})"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        self.create_test_optimization_file('multi_symbol_optimization_test.json', optimization_data)
+
+        df = self.visualizer.load_optimized_results()
+
+        self.assertEqual(len(df), 2, "Should load two optimized records")
+        self.assertIn('strategy', df.columns)
+        self.assertSetEqual(set(df['strategy']), {'SMA', 'MACD'})
+        self.assertEqual(df.loc[df['strategy'] == 'SMA', 'asset_type'].iloc[0], 'stock')
 
     def test_outlier_detection_logic(self):
         """Test outlier detection in strategy performance plotting."""

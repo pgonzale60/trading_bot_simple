@@ -4,6 +4,7 @@
 - Documented that optimisation outputs are single-asset simulations, not diversified portfolios
 - Added per-asset scope notes across README, performance report, and Claude context
 - Updated risk-management docs and multi-asset tester docstrings to explain current limitations
+- Synced visualization plots with the optimized performance report data (issue #9)
 
 ## v2.4.0 - Optimised Strategy Reporting
 - Added multi-symbol optimiser CLI controls and backward-compatible SMA wrapper
