@@ -20,3 +20,9 @@ Use concise, imperative commit subjects (e.g., `tighten position sizing checks`)
 
 ## Configuration & Caching Notes
 The bot reads cached Yahoo Finance data from `data_cache/`; clear it with `python main.py --clear-data-cache` when datasets go stale. Avoid committing generated CSV/PNG outputs or `cache/` contents. Environment definition lives in `environment-simple.yml`; update it alongside dependency bumps and verify micromamba syncs cleanly.
+
+## Collaboration Workflow Notes
+- Agents do not hold GitHub credentials; request that the human collaborator runs `gh` commands and confirm status before attempting automation.
+- Branches should be created per tracked issue with descriptive names (e.g., `feature-x-issue-123`); commits must mention the issue number when closing work.
+- Always update `CHANGELOG.md` for user-visible effects, following the existing version sections and explicitly referencing the related issue number.
+- Default to the `trading-bot-simple` micromamba environment for execution and testing, and verify changes using `python run_tests.py` (or targeted pytest runs) before handing off.
