@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.0.0 (Unreleased)
+- Added experimental portfolio mode scaffold with shared CLI flag and Backtrader engine foundation (issue #14)
+
 ## v2.4.1 - Clarify Per-Asset Reporting
 - Documented that optimisation outputs are single-asset simulations, not diversified portfolios
 - Added per-asset scope notes across README, performance report, and Claude context

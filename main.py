@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import argparse
-import sys
-import os
 import glob
+import os
+from typing import Optional, Sequence
+
 from multi_asset_tester import MultiAssetTester
+from portfolio_engine import PortfolioEngine
 from results_visualizer import ResultsVisualizer
 
 
@@ -64,13 +68,16 @@ def run_single_test(symbol, strategy, start_date, cash, use_cache=True, **params
     except Exception as e:
         print(f"Error: {e}")
 
-
-def main():
+def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Advanced Trading Bot with Multi-Asset Testing')
 
     # Mode selection
-    parser.add_argument('--mode', choices=['single', 'multi', 'optimize', 'visualize'],
-                       default='single', help='Operation mode')
+    parser.add_argument(
+        '--mode',
+        choices=['single', 'multi', 'portfolio', 'optimize', 'visualize'],
+        default='single',
+        help='Operation mode',
+    )
 
     # Single test parameters
     parser.add_argument('--symbol', default='AAPL', help='Stock symbol')
@@ -85,36 +92,48 @@ def main():
     parser.add_argument('--rsi-low', type=int, default=30, help='RSI oversold level')
     parser.add_argument('--rsi-high', type=int, default=70, help='RSI overbought level')
 
-    # Multi-asset testing
-    parser.add_argument('--test-mode', choices=['quick', 'full', 'stocks', 'crypto'],
-                       default='quick', help='Multi-asset test mode')
+    # Multi-asset & portfolio testing
+    parser.add_argument(
+        '--test-mode',
+        choices=['quick', 'full', 'stocks', 'crypto'],
+        default='quick',
+        help='Multi-asset/portfolio test mode',
+    )
 
     # Optimization parameters
-    parser.add_argument('--opt-mode', choices=['single', 'all', 'quick', 'multi-symbol'], default='quick',
-                       help='Optimization mode: single strategy, all strategies, quick test, or multi-symbol comprehensive')
-    parser.add_argument('--opt-symbols', choices=['all', 'stocks', 'crypto'], default='all',
-                       help='For multi-symbol optimization: which symbols to include')
+    parser.add_argument(
+        '--opt-mode',
+        choices=['single', 'all', 'quick', 'multi-symbol'],
+        default='quick',
+        help='Optimization mode: single strategy, all strategies, quick test, or multi-symbol comprehensive',
+    )
+    parser.add_argument(
+        '--opt-symbols',
+        choices=['all', 'stocks', 'crypto'],
+        default='all',
+        help='For multi-symbol optimization: which symbols to include',
+    )
 
     # Caching
     parser.add_argument('--no-cache', action='store_true', help='Disable data and results caching')
     parser.add_argument('--clear-cache', action='store_true', help='Clear all cache files')
     parser.add_argument('--clear-data-cache', action='store_true', help='Clear data cache only')
 
-    args = parser.parse_args()
+    return parser
 
-    # Handle cache clearing options
+
+def execute(args: argparse.Namespace):
+    # Handle cache clearing options upfront
     if args.clear_cache or args.clear_data_cache:
         clear_data_cache()
         if args.clear_cache:
-            # Also clear MultiAssetTester cache
             tester = MultiAssetTester()
             tester.clear_all_caches()
-        return
+        return None
 
     use_cache = not args.no_cache
 
     if args.mode == 'single':
-        # Single strategy test (legacy mode)
         strategy_params = {}
         strategy_name = args.strategy or 'sma'
 
@@ -124,16 +143,10 @@ def main():
             strategy_params = {'rsi_period': args.rsi_period, 'rsi_low': args.rsi_low, 'rsi_high': args.rsi_high}
 
         run_single_test(args.symbol, strategy_name, args.start, args.cash, use_cache, **strategy_params)
+        return None
 
-    elif args.mode == 'multi':
-        # Multi-asset strategy comparison
+    if args.mode == 'multi':
         tester = MultiAssetTester(start_date=args.start, cash=args.cash)
-
-        if args.clear_cache:
-            tester.clear_all_caches()
-            return
-
-        use_cache = not args.no_cache
 
         if args.test_mode == 'quick':
             tester.quick_multi_asset_test()
@@ -143,9 +156,18 @@ def main():
             tester.compare_strategies_across_assets(symbols=tester.stock_symbols, use_cache=use_cache)
         elif args.test_mode == 'crypto':
             tester.compare_strategies_across_assets(symbols=tester.crypto_symbols, use_cache=use_cache)
+        return None
 
-    elif args.mode == 'optimize':
-        # Parameter optimization
+    if args.mode == 'portfolio':
+        engine = PortfolioEngine(
+            start_date=args.start,
+            cash=args.cash,
+            test_mode=args.test_mode,
+            use_cache=use_cache,
+        )
+        return engine.run()
+
+    if args.mode == 'optimize':
         from optimizer import ParameterOptimizer
 
         optimizer = ParameterOptimizer(
@@ -167,14 +189,21 @@ def main():
             optimizer.optimize_all_symbols(symbols_type=args.opt_symbols)
         else:  # quick mode
             optimizer.quick_test(selected_strategy)
+        return None
 
-    elif args.mode == 'visualize':
-        # Generate visualization report
+    if args.mode == 'visualize':
         visualizer = ResultsVisualizer()
         visualizer.generate_full_report()
+        return None
 
-    else:
-        print("Unknown mode. Use --help for options.")
+    print("Unknown mode. Use --help for options.")
+    return None
+
+
+def main(argv: Optional[Sequence[str]] = None) -> None:
+    parser = build_arg_parser()
+    args = parser.parse_args(argv)
+    execute(args)
 
 
 if __name__ == '__main__':
