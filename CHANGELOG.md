@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.4.1 - Clarify Per-Asset Reporting (unreleased)
+## v2.4.1 - Clarify Per-Asset Reporting
 - Documented that optimisation outputs are single-asset simulations, not diversified portfolios
 - Added per-asset scope notes across README, performance report, and Claude context
 - Updated risk-management docs and multi-asset tester docstrings to explain current limitations
