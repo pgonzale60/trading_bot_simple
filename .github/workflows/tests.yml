@@ -92,7 +92,7 @@ jobs:
     - name: Test basic system functionality
       shell: micromamba-shell {0}
       run: |
-        python test_bot.py
+        python scripts/test_bot.py
 
     - name: Test single strategy mode
       shell: micromamba-shell {0}
@@ -104,7 +104,7 @@ jobs:
       shell: micromamba-shell {0}
       run: |
         # Quick optimization test
-        timeout 120 python main.py --mode optimize --symbol AAPL --start 2024-01-01 || echo "Optimization test completed (may have failed due to network)"
+        timeout 120 python main.py --mode optimize --opt-mode quick --symbol AAPL --start 2024-01-01 || echo "Optimization test completed (may have failed due to network)"
 
   security-scan:
     runs-on: ubuntu-latest
