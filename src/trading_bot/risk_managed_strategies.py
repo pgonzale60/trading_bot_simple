@@ -12,9 +12,10 @@ These strategies replace the old high-risk implementations with proper:
 """
 
 import backtrader as bt
-from risk_managed_strategy import RiskManagedStrategy
-from risk_management import RiskLevel, StopLossMethod
-from risk_config import StrategyType
+
+from .risk_managed_strategy import RiskManagedStrategy
+from .risk_management import RiskLevel, StopLossMethod
+from .risk_config import StrategyType
 
 
 class RiskManagedSMAStrategy(RiskManagedStrategy):

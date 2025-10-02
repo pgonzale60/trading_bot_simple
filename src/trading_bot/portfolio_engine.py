@@ -15,7 +15,7 @@ from typing import Iterable, List, Optional, Sequence
 
 import backtrader as bt
 
-from asset_universe import (
+from .asset_universe import (
     ALL_ASSETS_2019,
     CRYPTO_UNIVERSE_2019,
     QUICK_SAMPLE_ALL,
@@ -23,8 +23,8 @@ from asset_universe import (
     QUICK_SAMPLE_STOCKS,
     STOCK_UNIVERSE_2019,
 )
-from data import get_stock_data
-from portfolio_config import DEFAULT_PORTFOLIO_CONFIG, PortfolioConfig
+from .data import get_stock_data
+from .portfolio_config import DEFAULT_PORTFOLIO_CONFIG, PortfolioConfig
 
 logger = logging.getLogger(__name__)
 

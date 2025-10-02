@@ -16,10 +16,10 @@ from enum import Enum
 from itertools import product
 from typing import Dict, Iterable
 
-from data import get_stock_data
-from multi_asset_tester import MultiAssetTester
-from risk_management import RiskLevel, StopLossMethod
-from risk_managed_strategies import (
+from .data import get_stock_data
+from .multi_asset_tester import MultiAssetTester
+from .risk_management import RiskLevel, StopLossMethod
+from .risk_managed_strategies import (
     RISK_MANAGED_STRATEGIES as STRATEGIES,
     get_risk_managed_strategy_params as get_strategy_params,
 )

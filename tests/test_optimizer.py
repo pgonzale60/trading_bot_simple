@@ -5,16 +5,13 @@ Unit tests for parameter optimization functionality.
 
 import json
 import unittest
-import sys
 import os
+
 import pandas as pd
 from unittest.mock import patch, MagicMock, mock_open
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from optimizer import ParameterOptimizer
-from risk_management import RiskLevel, StopLossMethod
+from trading_bot.optimizer import ParameterOptimizer
+from trading_bot.risk_management import RiskLevel, StopLossMethod
 
 
 def load_fixtures():
@@ -55,7 +52,7 @@ class TestParameterOptimizer(unittest.TestCase):
         self.assertEqual(self.optimizer.results, [])
         self.assertIsNone(self.optimizer.data)
 
-    @patch('optimizer.get_stock_data')
+    @patch('trading_bot.optimizer.get_stock_data')
     def test_load_data_success(self, mock_get_data):
         """Test successful data loading."""
         mock_get_data.return_value = self.mock_data
@@ -66,7 +63,7 @@ class TestParameterOptimizer(unittest.TestCase):
         self.assertIsNotNone(self.optimizer.data)
         mock_get_data.assert_called_once_with('AAPL', '2023-01-01')
 
-    @patch('optimizer.get_stock_data')
+    @patch('trading_bot.optimizer.get_stock_data')
     def test_load_data_failure(self, mock_get_data):
         """Test data loading failure."""
         mock_get_data.side_effect = Exception("Network error")
@@ -81,7 +78,7 @@ class TestParameterOptimizer(unittest.TestCase):
         self.optimizer.data = MagicMock()
 
         # Mock Backtrader components
-        with patch('optimizer.bt.Cerebro') as mock_cerebro_class:
+        with patch('trading_bot.optimizer.bt.Cerebro') as mock_cerebro_class:
             mock_cerebro = MagicMock()
             mock_cerebro.broker.getvalue.return_value = 11000  # 10% gain
             mock_cerebro_class.return_value = mock_cerebro
@@ -100,7 +97,7 @@ class TestParameterOptimizer(unittest.TestCase):
             mock_cerebro.run.return_value = [mock_result]
 
             # Test backtest execution
-            from risk_managed_strategies import RiskManagedSMAStrategy
+            from trading_bot.risk_managed_strategies import RiskManagedSMAStrategy
             result = self.optimizer._run_backtest(RiskManagedSMAStrategy, short_period=10, long_period=30)
 
             # Verify result structure
@@ -226,7 +223,7 @@ class TestParameterOptimizer(unittest.TestCase):
         self.assertEqual(mock_load_data.call_count, 1)
         self.assertTrue(mock_to_csv.called)
 
-    @patch('optimizer.MultiAssetTester')
+    @patch('trading_bot.optimizer.MultiAssetTester')
     def test_optimize_all_symbols_compiles_results(self, mock_multi_asset_tester):
         """Comprehensive optimization should build summaries across symbols and strategies."""
 
@@ -252,9 +249,9 @@ class TestParameterOptimizer(unittest.TestCase):
 
         with patch.object(ParameterOptimizer, 'load_data', autospec=True) as mock_load_data, \
                 patch.object(ParameterOptimizer, 'test_strategy_parameters', autospec=True) as mock_test_params, \
-                patch('optimizer.open', mock_open(), create=True), \
-                patch('optimizer.json.dump') as mock_json_dump, \
-                patch('optimizer.datetime') as mock_datetime:
+                patch('trading_bot.optimizer.open', mock_open(), create=True), \
+                patch('trading_bot.optimizer.json.dump') as mock_json_dump, \
+                patch('trading_bot.optimizer.datetime') as mock_datetime:
 
             mock_load_data.side_effect = fake_load
             mock_test_params.side_effect = fake_results
@@ -325,9 +322,9 @@ class TestParameterOptimizer(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    @patch('optimizer.ParameterOptimizer.load_data')
-    @patch('optimizer.ParameterOptimizer.test_sma_parameters')
-    @patch('optimizer.ParameterOptimizer.analyze_results')
+    @patch('trading_bot.optimizer.ParameterOptimizer.load_data')
+    @patch('trading_bot.optimizer.ParameterOptimizer.test_sma_parameters')
+    @patch('trading_bot.optimizer.ParameterOptimizer.analyze_results')
     def test_quick_test(self, mock_analyze, mock_test_sma, mock_load_data):
         """Test quick test functionality."""
         # Mock successful data loading
@@ -354,7 +351,7 @@ class TestParameterOptimizer(unittest.TestCase):
         # Verify result
         self.assertIsInstance(result, pd.DataFrame)
 
-    @patch('optimizer.ParameterOptimizer.load_data')
+    @patch('trading_bot.optimizer.ParameterOptimizer.load_data')
     def test_quick_test_data_failure(self, mock_load_data):
         """Test quick test with data loading failure."""
         # Mock failed data loading

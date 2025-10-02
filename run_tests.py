@@ -12,6 +12,12 @@ import time
 from io import StringIO
 
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+SRC_PATH = os.path.join(PROJECT_ROOT, 'src')
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
+
+
 def discover_and_run_tests():
     """Discover and run all tests in the tests directory."""
     # Add current directory to path

@@ -6,14 +6,22 @@ as JSON fixtures that can be used for deterministic testing.
 """
 
 import json
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import backtrader as bt
 import warnings
 
-from optimizer import ParameterOptimizer
-from multi_asset_tester import MultiAssetTester
-from risk_managed_strategies import (
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC = PROJECT_ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from trading_bot.optimizer import ParameterOptimizer
+from trading_bot.multi_asset_tester import MultiAssetTester
+from trading_bot.risk_managed_strategies import (
     RiskManagedSMAStrategy,
     RiskManagedRSIStrategy,
     RiskManagedMACDStrategy,

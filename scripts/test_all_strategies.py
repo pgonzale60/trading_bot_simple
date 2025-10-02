@@ -3,10 +3,19 @@
 Test all fixed strategies with TSLA data to verify they work correctly.
 """
 
+import sys
+from pathlib import Path
+
 import backtrader as bt
 import yfinance as yf
 import pandas as pd
-from risk_managed_strategies import RISK_MANAGED_STRATEGIES as STRATEGIES
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC = PROJECT_ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from trading_bot.risk_managed_strategies import RISK_MANAGED_STRATEGIES as STRATEGIES
 
 def test_strategy(strategy_class, strategy_name, data, cash=10000):
     """Test a single strategy with given data."""

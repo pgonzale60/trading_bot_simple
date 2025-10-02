@@ -16,9 +16,12 @@ import json
 import os
 from datetime import datetime
 from itertools import product
-from data import get_stock_data
-from risk_managed_strategies import RISK_MANAGED_STRATEGIES, get_risk_managed_strategy_params
-from risk_management import RiskLevel
+from .data import get_stock_data
+from .risk_managed_strategies import (
+    RISK_MANAGED_STRATEGIES,
+    get_risk_managed_strategy_params,
+)
+from .risk_management import RiskLevel
 import warnings
 warnings.filterwarnings('ignore')
 

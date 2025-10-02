@@ -20,9 +20,9 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from data import get_stock_data
-from risk_managed_strategies import RISK_MANAGED_STRATEGIES
-from risk_management import RiskLevel, StopLossMethod
+from .data import get_stock_data
+from .risk_managed_strategies import RISK_MANAGED_STRATEGIES
+from .risk_management import RiskLevel, StopLossMethod
 
 
 @dataclass

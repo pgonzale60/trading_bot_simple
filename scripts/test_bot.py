@@ -3,6 +3,15 @@
 Simple test script to verify the trading bot works.
 """
 
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC = PROJECT_ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+
 def test_imports():
     """Test if all required modules can be imported."""
     print("Testing imports...")
@@ -41,7 +50,7 @@ def test_data_fetch():
     print("\nTesting data fetch...")
 
     try:
-        from data import get_stock_data
+        from trading_bot.data import get_stock_data
         # Test with a small date range
         data = get_stock_data('AAPL', '2024-01-01', '2024-01-31')
         print("✓ Data fetch successful")
@@ -56,7 +65,7 @@ def test_strategy():
     print("\nTesting strategy...")
 
     try:
-        from risk_managed_strategies import RiskManagedSMAStrategy
+        from trading_bot.risk_managed_strategies import RiskManagedSMAStrategy
         import backtrader as bt
 
         # Create a simple test
