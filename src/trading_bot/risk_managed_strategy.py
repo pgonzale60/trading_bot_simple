@@ -9,7 +9,7 @@ All strategies should inherit from RiskManagedStrategy instead of bt.Strategy.
 import backtrader as bt
 import uuid
 from typing import Dict, Optional, Any
-from risk_management import RiskManager, RiskLevel, StopLossMethod
+from .risk_management import RiskManager, RiskLevel, StopLossMethod
 
 
 class RiskManagedStrategy(bt.Strategy):

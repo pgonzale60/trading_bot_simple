@@ -8,7 +8,7 @@ Provides pre-defined risk profiles and strategy-specific adjustments.
 
 from enum import Enum
 from typing import Dict, Any
-from risk_management import RiskLevel, StopLossMethod
+from .risk_management import RiskLevel, StopLossMethod
 
 
 class StrategyType(Enum):

@@ -10,14 +10,9 @@ that work with the existing CI/CD pipeline.
 """
 
 import unittest
-import sys
-import os
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from risk_management import RiskManager, RiskLevel
-from risk_config import RiskConfig, StrategyType
+from trading_bot.risk_management import RiskManager, RiskLevel
+from trading_bot.risk_config import RiskConfig, StrategyType
 
 
 class MockBroker:
@@ -268,7 +263,7 @@ class TestRiskManagementIntegration(unittest.TestCase):
         """Test position sizing with real strategy and data."""
         try:
             import backtrader as bt
-            from risk_managed_strategies import RISK_MANAGED_STRATEGIES
+            from trading_bot.risk_managed_strategies import RISK_MANAGED_STRATEGIES
 
             data = self._get_test_data('AAPL', days=100)
             if data is None:

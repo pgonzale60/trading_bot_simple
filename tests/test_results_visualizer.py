@@ -14,12 +14,8 @@ import os
 import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-import sys
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from results_visualizer import ResultsVisualizer
+from trading_bot.results_visualizer import ResultsVisualizer
 
 
 class TestResultsVisualizer(unittest.TestCase):
@@ -205,9 +201,9 @@ class TestResultsVisualizer(unittest.TestCase):
         df = self.visualizer.load_optimized_results()
         self.assertTrue(df.empty)
 
-    @patch('results_visualizer.ResultsVisualizer.plot_strategy_performance')
-    @patch('results_visualizer.ResultsVisualizer.plot_asset_performance')
-    @patch('results_visualizer.ResultsVisualizer.plot_extreme_outliers')
+    @patch('trading_bot.results_visualizer.ResultsVisualizer.plot_strategy_performance')
+    @patch('trading_bot.results_visualizer.ResultsVisualizer.plot_asset_performance')
+    @patch('trading_bot.results_visualizer.ResultsVisualizer.plot_extreme_outliers')
     def test_generate_full_report_falls_back_to_cache(self, mock_outliers, mock_asset, mock_strategy):
         """When optimized data missing, fall back to cached results."""
         cache_rows = pd.DataFrame([

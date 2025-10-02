@@ -4,18 +4,15 @@ Unit tests for multi-asset testing functionality.
 """
 
 import unittest
-import sys
-import os
 import json
+import os
 import tempfile
 import shutil
 from unittest.mock import patch, MagicMock
+
 import pandas as pd
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from multi_asset_tester import MultiAssetTester
+from trading_bot.multi_asset_tester import MultiAssetTester
 
 
 class TestMultiAssetTester(unittest.TestCase):
@@ -114,14 +111,14 @@ class TestMultiAssetTester(unittest.TestCase):
         invalid_parsed = self.tester._parse_params("invalid_format")
         self.assertEqual(invalid_parsed, {})
 
-    @patch('multi_asset_tester.get_stock_data')
+    @patch('trading_bot.multi_asset_tester.get_stock_data')
     def test_single_strategy_test(self, mock_get_data):
         """Test testing a single strategy on a single symbol."""
         # Mock data fetching
         mock_get_data.return_value = MagicMock()
 
         # Mock Backtrader cerebro
-        with patch('multi_asset_tester.bt.Cerebro') as mock_cerebro_class:
+        with patch('trading_bot.multi_asset_tester.bt.Cerebro') as mock_cerebro_class:
             mock_cerebro = MagicMock()
             mock_cerebro.broker.getvalue.return_value = 11000  # 10% gain
             mock_cerebro_class.return_value = mock_cerebro
@@ -301,7 +298,7 @@ class TestErrorHandling(unittest.TestCase):
         """Clean up after tests."""
         shutil.rmtree(self.temp_cache_dir, ignore_errors=True)
 
-    @patch('multi_asset_tester.get_stock_data')
+    @patch('trading_bot.multi_asset_tester.get_stock_data')
     def test_data_fetch_failure(self, mock_get_data):
         """Test handling of data fetch failures."""
         # Mock data fetching to raise exception

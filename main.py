@@ -3,11 +3,18 @@ from __future__ import annotations
 import argparse
 import glob
 import os
+import sys
+from pathlib import Path
 from typing import Optional, Sequence
 
-from multi_asset_tester import MultiAssetTester
-from portfolio_engine import PortfolioEngine
-from results_visualizer import ResultsVisualizer
+ROOT = Path(__file__).resolve().parent
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from trading_bot.multi_asset_tester import MultiAssetTester
+from trading_bot.portfolio_engine import PortfolioEngine
+from trading_bot.results_visualizer import ResultsVisualizer
 
 
 def clear_data_cache(cache_dir='data_cache'):
@@ -26,9 +33,9 @@ def clear_data_cache(cache_dir='data_cache'):
 def run_single_test(symbol, strategy, start_date, cash, use_cache=True, **params):
     """Run a single strategy test (legacy mode)."""
     import backtrader as bt
-    from risk_managed_strategies import RISK_MANAGED_STRATEGIES
-    from data import get_stock_data
-    from visualization import print_performance_summary
+    from trading_bot.risk_managed_strategies import RISK_MANAGED_STRATEGIES
+    from trading_bot.data import get_stock_data
+    from trading_bot.visualization import print_performance_summary
 
     if strategy not in RISK_MANAGED_STRATEGIES:
         print(f"Unknown strategy: {strategy}")
@@ -170,7 +177,7 @@ def execute(args: argparse.Namespace):
         return engine.run()
 
     if args.mode == 'optimize':
-        from optimizer import ParameterOptimizer
+        from trading_bot.optimizer import ParameterOptimizer
 
         optimizer = ParameterOptimizer(
             symbol=args.symbol,

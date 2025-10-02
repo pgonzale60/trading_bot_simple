@@ -5,8 +5,8 @@ from types import SimpleNamespace
 import pandas as pd
 import pytest
 
-import top_performer_visualization as tpv
-from risk_management import RiskLevel
+from trading_bot import top_performer_visualization as tpv
+from trading_bot.risk_management import RiskLevel
 
 
 def test_parse_param_string_handles_dictionary():

@@ -18,8 +18,8 @@ class TestPortfolioModeFlag(unittest.TestCase):
         choices = self._get_mode_choices()
         self.assertIn('portfolio', choices)
 
-    @mock.patch('portfolio_engine.PortfolioEngine.run')
-    @mock.patch('portfolio_engine.PortfolioEngine.__init__', return_value=None)
+    @mock.patch('trading_bot.portfolio_engine.PortfolioEngine.run')
+    @mock.patch('trading_bot.portfolio_engine.PortfolioEngine.__init__', return_value=None)
     def test_execute_invokes_portfolio_engine(self, mock_init, mock_run):
         parser = main.build_arg_parser()
         args = parser.parse_args(['--mode', 'portfolio', '--test-mode', 'quick'])
@@ -34,7 +34,7 @@ class TestPortfolioModeFlag(unittest.TestCase):
         self.assertIs(result, sentinel)
 
     @mock.patch('main.run_single_test')
-    @mock.patch('portfolio_engine.PortfolioEngine')
+    @mock.patch('trading_bot.portfolio_engine.PortfolioEngine')
     def test_single_mode_does_not_trigger_portfolio_engine(self, mock_engine, mock_run_single):
         parser = main.build_arg_parser()
         args = parser.parse_args(['--mode', 'single'])
@@ -104,10 +104,10 @@ class TestPortfolioModeFlag(unittest.TestCase):
 
         with mock.patch.dict(sys.modules, {
             'backtrader': fake_module_bt,
-            'data': fake_data_module,
-            'visualization': fake_vis_module,
+            'trading_bot.data': fake_data_module,
+            'trading_bot.visualization': fake_vis_module,
         }):
-            from risk_managed_strategies import RISK_MANAGED_STRATEGIES
+            from trading_bot.risk_managed_strategies import RISK_MANAGED_STRATEGIES
 
             class DummyStrategy:
                 pass

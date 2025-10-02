@@ -1,14 +1,14 @@
 import unittest
 from unittest import mock
 
-import asset_universe
-from portfolio_config import DEFAULT_PORTFOLIO_CONFIG, PortfolioConfig, SleeveLimit
-from portfolio_engine import PortfolioBuyHoldStrategy, PortfolioEngine, PortfolioRunResult
+from trading_bot import asset_universe
+from trading_bot.portfolio_config import DEFAULT_PORTFOLIO_CONFIG, PortfolioConfig, SleeveLimit
+from trading_bot.portfolio_engine import PortfolioBuyHoldStrategy, PortfolioEngine, PortfolioRunResult
 
 
 class TestPortfolioEngineRun(unittest.TestCase):
-    @mock.patch('portfolio_engine.bt')
-    @mock.patch('portfolio_engine.get_stock_data')
+    @mock.patch('trading_bot.portfolio_engine.bt')
+    @mock.patch('trading_bot.portfolio_engine.get_stock_data')
     def test_run_deduplicates_symbols_and_returns_result(self, mock_get_stock_data, mock_bt):
         engine = PortfolioEngine(start_date='2020-01-01', cash=5000.0, test_mode='quick', use_cache=False)
 
