@@ -15,6 +15,7 @@ if str(SRC) not in sys.path:
 from trading_bot.multi_asset_tester import MultiAssetTester
 from trading_bot.portfolio_engine import PortfolioEngine
 from trading_bot.results_visualizer import ResultsVisualizer
+from trading_bot.risk_management import RiskLevel
 
 
 def clear_data_cache(cache_dir='data_cache'):
@@ -83,7 +84,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     # Mode selection
     parser.add_argument(
         '--mode',
-        choices=['single', 'multi', 'portfolio', 'optimize', 'visualize'],
+        choices=['single', 'multi', 'portfolio', 'optimize', 'visualize', 'report', 'report-only'],
         default='single',
         help='Operation mode',
     )
@@ -122,6 +123,23 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default='all',
         help='For multi-symbol optimization: which symbols to include',
     )
+
+    # Reporting parameters
+    parser.add_argument(
+        '--report-risk-profile',
+        choices=[level.name.lower() for level in RiskLevel],
+        default='aggressive',
+        help='Risk profile for top performer report replays',
+    )
+    parser.add_argument('--report-top-k', type=int, default=3, help='Top performers to chart in report mode')
+    parser.add_argument(
+        '--report-min-return',
+        type=float,
+        default=None,
+        help='Optional minimum return filter for report charts',
+    )
+    parser.add_argument('--reports-dir', type=Path, default=Path('reports'), help='Output directory for generated reports')
+    parser.add_argument('--report-json', type=str, default=None, help='Path to existing optimization JSON for report-only mode')
 
     # Caching
     parser.add_argument('--no-cache', action='store_true', help='Disable data and results caching')
@@ -203,6 +221,45 @@ def execute(args: argparse.Namespace):
     if args.mode == 'visualize':
         visualizer = ResultsVisualizer()
         visualizer.generate_full_report()
+        return None
+
+    if args.mode == 'report':
+        from trading_bot.lab_report import generate_lab_report
+
+        risk_profile = RiskLevel[args.report_risk_profile.upper()]
+        generate_lab_report(
+            start_date=args.start,
+            cash=args.cash,
+            symbols_type=args.opt_symbols,
+            risk_profile=risk_profile,
+            top_k=args.report_top_k,
+            min_return=args.report_min_return,
+            reports_root=Path(args.reports_dir),
+        )
+        return None
+
+    if args.mode == 'report-only':
+        from trading_bot.lab_report import generate_report_from_json
+
+        risk_profile = RiskLevel[args.report_risk_profile.upper()]
+
+        # Find latest multi_symbol_optimization JSON if not specified
+        json_path = args.report_json
+        if json_path is None:
+            json_files = sorted(ROOT.glob('multi_symbol_optimization_*.json'), reverse=True)
+            if not json_files:
+                print("❌ No multi_symbol_optimization_*.json files found in project root")
+                return None
+            json_path = str(json_files[0])
+            print(f"📊 Using latest optimization results: {Path(json_path).name}")
+
+        generate_report_from_json(
+            json_path=Path(json_path),
+            risk_profile=risk_profile,
+            top_k=args.report_top_k,
+            min_return=args.report_min_return,
+            reports_root=Path(args.reports_dir),
+        )
         return None
 
     print("Unknown mode. Use --help for options.")

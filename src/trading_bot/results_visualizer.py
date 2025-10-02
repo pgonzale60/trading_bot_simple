@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from pathlib import Path
+from typing import Optional
 import json
 import os
 
@@ -120,7 +121,7 @@ class ResultsVisualizer:
         print(f"Loaded {len(df)} optimized results from {optimization_file.name}")
         return df
 
-    def plot_strategy_performance(self, df, save_path=None):
+    def plot_strategy_performance(self, df, save_path=None, show=True):
         """Create a comprehensive strategy performance visualization."""
         if df.empty:
             return
@@ -216,12 +217,17 @@ class ResultsVisualizer:
         plt.tight_layout()
 
         if save_path:
+            save_path = Path(save_path)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             print(f"Plot saved to: {save_path}")
 
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
 
-    def plot_asset_performance(self, df, save_path=None):
+    def plot_asset_performance(self, df, save_path=None, show=True):
         """Create asset-specific performance visualization."""
         if df.empty or 'symbol' not in df.columns:
             return
@@ -310,10 +316,15 @@ class ResultsVisualizer:
         plt.tight_layout()
 
         if save_path:
+            save_path = Path(save_path)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             print(f"Asset analysis plot saved to: {save_path}")
 
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
 
     def create_summary_report(self, df):
         """Create a text summary report."""
@@ -363,7 +374,7 @@ class ResultsVisualizer:
             for _, row in top_assets.iterrows():
                 print(f"{row['symbol']:<10} {row['return_pct']:>10.1f}% {row['strategy']:<12}")
 
-    def plot_extreme_outliers(self, df, save_path=None):
+    def plot_extreme_outliers(self, df, save_path=None, show=True):
         """Create a separate plot just for extreme outliers."""
         if df.empty:
             return
@@ -407,13 +418,25 @@ class ResultsVisualizer:
         plt.tight_layout()
 
         if save_path:
+            save_path = Path(save_path)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
             print(f"Extreme outliers plot saved to: {save_path}")
 
-        plt.show()
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
 
-    def generate_full_report(self):
-        """Generate a complete analysis report with visualizations."""
+    def generate_full_report(self, output_dir: Optional[Path] = None, show: bool = True):
+        """Generate a complete analysis report with visualizations.
+
+        Args:
+            output_dir: Optional directory where artifacts should be written. Defaults to CWD.
+            show: Whether to display figures interactively.
+        Returns:
+            dict mapping visualization names to generated ``Path`` objects.
+        """
         df = self.load_optimized_results()
 
         if df.empty:
@@ -421,19 +444,32 @@ class ResultsVisualizer:
 
         if df.empty:
             print("No data available for visualization!")
-            return
+            return {}
 
         print(f"Generating comprehensive analysis report...")
 
         # Create text summary
         self.create_summary_report(df)
 
+        output_path = Path(output_dir) if output_dir else Path('.')
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        strategy_plot_path = output_path / 'strategy_performance.png'
+        asset_plot_path = output_path / 'asset_performance.png'
+        outlier_plot_path = output_path / 'extreme_outliers.png'
+
         # Create visualizations
-        self.plot_strategy_performance(df, 'strategy_performance.png')
-        self.plot_asset_performance(df, 'asset_performance.png')
-        self.plot_extreme_outliers(df, 'extreme_outliers.png')
+        self.plot_strategy_performance(df, strategy_plot_path, show=show)
+        self.plot_asset_performance(df, asset_plot_path, show=show)
+        self.plot_extreme_outliers(df, outlier_plot_path, show=show)
 
         print(f"\n✅ Analysis complete! Check the generated PNG files for detailed charts.")
+
+        return {
+            'strategy_plot': strategy_plot_path,
+            'asset_plot': asset_plot_path,
+            'extreme_plot': outlier_plot_path,
+        }
 
 
 def main():

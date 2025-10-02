@@ -291,7 +291,10 @@ class TestResultsVisualizer(unittest.TestCase):
             print(f"Plot failed with error: {e}")
 
         self.assertTrue(plot_succeeded, "Should handle outliers without crashing")
-        mock_savefig.assert_called_once_with('test_plot.png', dpi=300, bbox_inches='tight')
+        mock_savefig.assert_called_once()
+        args, kwargs = mock_savefig.call_args
+        self.assertEqual(Path(args[0]), Path('test_plot.png'))
+        self.assertEqual(kwargs, {'dpi': 300, 'bbox_inches': 'tight'})
 
     @patch('matplotlib.pyplot.show')
     @patch('matplotlib.pyplot.savefig')
@@ -314,7 +317,10 @@ class TestResultsVisualizer(unittest.TestCase):
             print(f"Extreme outliers plot failed: {e}")
 
         self.assertTrue(plot_succeeded, "Should create extreme outliers plot successfully")
-        mock_savefig.assert_called_once_with('outliers_test.png', dpi=300, bbox_inches='tight')
+        mock_savefig.assert_called_once()
+        args, kwargs = mock_savefig.call_args
+        self.assertEqual(Path(args[0]), Path('outliers_test.png'))
+        self.assertEqual(kwargs, {'dpi': 300, 'bbox_inches': 'tight'})
 
     def test_empty_dataframe_handling(self):
         """Test handling of empty DataFrames."""

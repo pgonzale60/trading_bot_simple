@@ -15,6 +15,8 @@ Everything in the repo exists to serve those flows and provides a clean base for
 | Multi-asset optimiser | `python -m trading_bot.optimizer` or `main.py --mode optimize` | Sweeps the registered strategies for each symbol, writing a summary JSON (e.g. `multi_symbol_optimization_all_*.json`). |
 | Result dashboards | `python main.py --mode visualize` | Aggregates optimiser output, plots distributions/boxplots, and handles extreme outliers separately. |
 | Trade inspector | `python -m trading_bot.top_performer_visualization --report <file> --top-k 3` | Replays selected runs, capturing trades and risk telemetry for charting. |
+| Automated lab report | `python main.py --mode report --opt-symbols all --report-top-k 3` | Runs optimiser + generates visualizations + top performer timelines + markdown summary in `reports/<timestamp>/`. |
+| Report from existing JSON | `python main.py --mode report-only [--report-json <file>]` | Generates full report from existing optimiser output without re-running optimization. Uses latest JSON if not specified. |
 
 The scripts write to `cache/`, `visualizations/`, and the repo root as needed. Everything is single-asset today; the `PortfolioEngine` stub anchors future blended portfolio work.
 
@@ -22,14 +24,22 @@ The scripts write to `cache/`, `visualizations/`, and the repo root as needed. E
 
 ```bash
 micromamba env create -f environment-simple.yml -y
+
+# Run optimizer + full report pipeline
+micromamba run -n trading-bot-simple python main.py --mode report --opt-symbols all --report-top-k 3
+
+# Or run steps separately:
 micromamba run -n trading-bot-simple python main.py --mode optimize --opt-mode multi-symbol --opt-symbols crypto
+micromamba run -n trading-bot-simple python main.py --mode report-only --report-top-k 5
+
+# Standalone visualization from existing JSON
 micromamba run -n trading-bot-simple python main.py --mode visualize
-micromamba run -n trading-bot-simple python -m trading_bot.top_performer_visualization --report multi_symbol_optimization_all_20251002_194419.json --top-k 3
 ```
 
 - Cached market data lives in `data_cache/`. Clear it with `python main.py --clear-data-cache`.
 - Optimiser and tester caches live under `cache/` with per-symbol JSON dumps.
 - Charts drop into `visualizations/` (ignored by git).
+- End-to-end lab reports land in `reports/<timestamp>/` with JSON, Markdown, and charts.
 
 ## Project Layout
 
