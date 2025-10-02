@@ -134,33 +134,26 @@ def _render_markdown(
     return "\n".join(lines).strip() + "\n"
 
 
-def generate_lab_report(
+def _generate_report_from_json_file(
     *,
-    start_date: str,
-    cash: float,
-    symbols_type: str,
+    json_source: Path,
     risk_profile: RiskLevel,
     top_k: int,
     min_return: Optional[float],
     reports_root: Path,
+    optimizer_args: Dict[str, object],
 ) -> Path:
-    reports_root.mkdir(parents=True, exist_ok=True)
-
-    optimizer = ParameterOptimizer(start_date=start_date, cash=cash)
-    results = optimizer.optimize_all_symbols(symbols_type=symbols_type)
-
-    output_file = Path(results["output_file"])
-    json_source = output_file if output_file.is_absolute() else Path.cwd() / output_file
-
-    timestamp = output_file.stem.split("_")[-1]
+    """Internal helper to generate report from a JSON file."""
+    timestamp = json_source.stem.split("_")[-1]
     report_dir = reports_root / timestamp
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    json_target = report_dir / output_file.name
+    json_target = report_dir / json_source.name
     if json_source != json_target:
+        import shutil
         if json_target.exists():
             json_target.unlink()
-        json_source.replace(json_target)
+        shutil.copy2(json_source, json_target)
 
     visualizer = ResultsVisualizer(report_dir=report_dir)
     viz_outputs = visualizer.generate_full_report(output_dir=report_dir, show=False)
@@ -186,19 +179,94 @@ def generate_lab_report(
         top_performers,
         viz_outputs,
         top_charts,
-        {
-            "start_date": start_date,
-            "cash": cash,
-            "symbols_type": symbols_type,
-            "risk_profile": risk_profile.name.lower(),
-            "top_k": top_k,
-            "min_return": min_return if min_return is not None else "None",
-        },
+        optimizer_args,
     )
 
     report_path = report_dir / "performance_report.md"
     report_path.write_text(markdown)
 
+    return report_dir
+
+
+def generate_report_from_json(
+    *,
+    json_path: Path,
+    risk_profile: RiskLevel,
+    top_k: int,
+    min_return: Optional[float],
+    reports_root: Path,
+) -> Path:
+    """Generate a report from an existing optimization JSON file without re-running the optimizer."""
+    reports_root.mkdir(parents=True, exist_ok=True)
+
+    if not json_path.exists():
+        raise FileNotFoundError(f"Optimization JSON not found: {json_path}")
+
+    json_source = json_path if json_path.is_absolute() else Path.cwd() / json_path
+
+    # Extract optimizer args from metadata
+    results_dict = _load_results(json_source)
+    metadata = results_dict.get("optimization_metadata", {})
+
+    optimizer_args = {
+        "start_date": metadata.get("start_date", "N/A"),
+        "cash": metadata.get("cash", "N/A"),
+        "symbols_type": metadata.get("symbols_type", "N/A"),
+        "risk_profile": risk_profile.name.lower(),
+        "top_k": top_k,
+        "min_return": min_return if min_return is not None else "None",
+    }
+
+    report_dir = _generate_report_from_json_file(
+        json_source=json_source,
+        risk_profile=risk_profile,
+        top_k=top_k,
+        min_return=min_return,
+        reports_root=reports_root,
+        optimizer_args=optimizer_args,
+    )
+
+    print(f"\n📄 Report generated in {report_dir}")
+    return report_dir
+
+
+def generate_lab_report(
+    *,
+    start_date: str,
+    cash: float,
+    symbols_type: str,
+    risk_profile: RiskLevel,
+    top_k: int,
+    min_return: Optional[float],
+    reports_root: Path,
+) -> Path:
+    reports_root.mkdir(parents=True, exist_ok=True)
+
+    optimizer = ParameterOptimizer(start_date=start_date, cash=cash)
+    results = optimizer.optimize_all_symbols(symbols_type=symbols_type)
+
+    output_file = Path(results["output_file"])
+    json_source = output_file if output_file.is_absolute() else Path.cwd() / output_file
+
+    optimizer_args = {
+        "start_date": start_date,
+        "cash": cash,
+        "symbols_type": symbols_type,
+        "risk_profile": risk_profile.name.lower(),
+        "top_k": top_k,
+        "min_return": min_return if min_return is not None else "None",
+    }
+
+    report_dir = _generate_report_from_json_file(
+        json_source=json_source,
+        risk_profile=risk_profile,
+        top_k=top_k,
+        min_return=min_return,
+        reports_root=reports_root,
+        optimizer_args=optimizer_args,
+    )
+
+    print(f"\n📄 Report generated in {report_dir}")
     return report_dir
 
 

@@ -84,7 +84,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     # Mode selection
     parser.add_argument(
         '--mode',
-        choices=['single', 'multi', 'portfolio', 'optimize', 'visualize', 'report'],
+        choices=['single', 'multi', 'portfolio', 'optimize', 'visualize', 'report', 'report-only'],
         default='single',
         help='Operation mode',
     )
@@ -139,6 +139,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help='Optional minimum return filter for report charts',
     )
     parser.add_argument('--reports-dir', type=Path, default=Path('reports'), help='Output directory for generated reports')
+    parser.add_argument('--report-json', type=str, default=None, help='Path to existing optimization JSON for report-only mode')
 
     # Caching
     parser.add_argument('--no-cache', action='store_true', help='Disable data and results caching')
@@ -230,6 +231,30 @@ def execute(args: argparse.Namespace):
             start_date=args.start,
             cash=args.cash,
             symbols_type=args.opt_symbols,
+            risk_profile=risk_profile,
+            top_k=args.report_top_k,
+            min_return=args.report_min_return,
+            reports_root=Path(args.reports_dir),
+        )
+        return None
+
+    if args.mode == 'report-only':
+        from trading_bot.lab_report import generate_report_from_json
+
+        risk_profile = RiskLevel[args.report_risk_profile.upper()]
+
+        # Find latest multi_symbol_optimization JSON if not specified
+        json_path = args.report_json
+        if json_path is None:
+            json_files = sorted(ROOT.glob('multi_symbol_optimization_*.json'), reverse=True)
+            if not json_files:
+                print("❌ No multi_symbol_optimization_*.json files found in project root")
+                return None
+            json_path = str(json_files[0])
+            print(f"📊 Using latest optimization results: {Path(json_path).name}")
+
+        generate_report_from_json(
+            json_path=Path(json_path),
             risk_profile=risk_profile,
             top_k=args.report_top_k,
             min_return=args.report_min_return,
