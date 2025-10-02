@@ -14,6 +14,7 @@ from unittest.mock import patch, MagicMock, mock_open
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from optimizer import ParameterOptimizer
+from risk_management import RiskLevel, StopLossMethod
 
 
 def load_fixtures():
@@ -425,6 +426,24 @@ class TestParameterValidation(unittest.TestCase):
         )
 
         self.assertEqual(len(results), 0)
+
+    def test_parameter_sanitization_helpers(self):
+        """New helper utilities should sanitise and coerce parameter values."""
+        params = {
+            'risk_profile': RiskLevel.AGGRESSIVE,
+            'stop_loss_method': StopLossMethod.ATR,
+            'short_period': 10,
+        }
+
+        sanitized = self.optimizer._sanitize_params(params)
+        self.assertEqual(sanitized['risk_profile'], 'aggressive')
+        self.assertEqual(sanitized['stop_loss_method'], 'atr')
+
+        coerced_profile = self.optimizer._coerce_param_value_for_strategy('risk_profile', 'moderate')
+        self.assertIs(coerced_profile, RiskLevel.MODERATE)
+
+        formatted = self.optimizer._format_params('sma', params)
+        self.assertIn('risk_profile=aggressive', formatted)
 
         # Test with empty long periods
         results = self.optimizer.test_sma_parameters(
