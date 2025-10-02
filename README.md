@@ -176,7 +176,6 @@ trading_bot_simple/
 ├── multi_asset_tester.py        # Test strategies across 41 assets (stocks + crypto)
 ├── results_visualizer.py        # Performance visualization and analysis
 ├── optimizer.py                 # Parameter optimization tools
-├── strategies.py                # Multiple trading strategies (SMA, RSI, MACD, etc.)
 ├── risk_managed_strategies.py   # 🛡️ Professional risk-managed strategies
 ├── risk_management.py           # 🛡️ Core risk management engine
 ├── risk_managed_strategy.py     # 🛡️ Base class for all strategies

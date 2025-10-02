@@ -1,5 +1,8 @@
 import argparse
+import sys
+import types
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 import main
@@ -40,6 +43,87 @@ class TestPortfolioModeFlag(unittest.TestCase):
 
         mock_engine.assert_not_called()
         mock_run_single.assert_called_once()
+
+    def test_run_single_test_uses_risk_managed_strategy(self):
+        # Stub external modules imported inside run_single_test
+        fake_module_bt = types.SimpleNamespace()
+
+        class FakeBroker:
+            def __init__(self):
+                self.value = 10000
+                self.cash = 6000
+
+            def setcash(self, amount):
+                self.value = amount
+
+            def setcommission(self, **kwargs):
+                self.commission = kwargs
+
+            def getvalue(self):
+                return self.value
+
+            def getcash(self):
+                return self.cash
+
+        class FakeCerebro:
+            instances = []
+
+            def __init__(self):
+                self.broker = FakeBroker()
+                self.strategy_kwargs = None
+                self.plotted = False
+                FakeCerebro.instances.append(self)
+
+            def addstrategy(self, cls, **kwargs):
+                self.strategy_kwargs = kwargs
+
+            def adddata(self, data):
+                self.data = data
+
+            def run(self):
+                # Simulate portfolio growth and return strategy list
+                self.broker.value = 12000
+                return []
+
+            def plot(self, *args, **kwargs):
+                self.plotted = True
+
+        fake_module_bt.Cerebro = FakeCerebro
+
+        def fake_get_stock_data(*args, **kwargs):
+            return SimpleNamespace()
+
+        printed = {}
+
+        def fake_print_summary(cash, final_value):
+            printed['cash'] = cash
+            printed['final'] = final_value
+
+        fake_data_module = types.SimpleNamespace(get_stock_data=fake_get_stock_data)
+        fake_vis_module = types.SimpleNamespace(print_performance_summary=fake_print_summary)
+
+        with mock.patch.dict(sys.modules, {
+            'backtrader': fake_module_bt,
+            'data': fake_data_module,
+            'visualization': fake_vis_module,
+        }):
+            from risk_managed_strategies import RISK_MANAGED_STRATEGIES
+
+            class DummyStrategy:
+                pass
+
+            RISK_MANAGED_STRATEGIES['dummy'] = DummyStrategy
+
+            try:
+                main.run_single_test('SYM', 'dummy', '2020-01-01', 10000, use_cache=False)
+            finally:
+                del RISK_MANAGED_STRATEGIES['dummy']
+
+        # Verify summary output and default kwargs were applied
+        self.assertEqual(printed['cash'], 10000)
+        self.assertEqual(printed['final'], 12000)
+        self.assertIsNotNone(FakeCerebro.instances[-1].strategy_kwargs)
+        self.assertFalse(FakeCerebro.instances[-1].strategy_kwargs['enable_risk_logging'])
 
 
 if __name__ == '__main__':

@@ -1,7 +1,17 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Core trading flows live at the repository root: `main.py` orchestrates execution modes, while `strategies.py`, `risk_managed_strategies.py`, and `risk_management.py` hold portfolio logic and controls. Optimizers and analysis tooling reside in `optimizer.py`, `results_visualizer.py`, and `multi_asset_tester.py`. Cached market data is stored under `data_cache/`, and generated performance artefacts land in CSV/PNG files in the root. Documentation expands on risk processes inside `docs/risk-management/`. Tests sit in `tests/`, with fixtures in `tests/fixtures.json` and suite entry points such as `tests/test_risk_management.py`.
+Core trading flows live at the repository root: `main.py` orchestrates execution modes, while `risk_managed_strategies.py` and `risk_management.py` hold portfolio logic and controls. Optimizers and analysis tooling reside in `optimizer.py`, `results_visualizer.py`, and `multi_asset_tester.py`. Cached market data is stored under `data_cache/`, and generated performance artefacts land in CSV/PNG files in the root. Documentation expands on risk processes inside `docs/risk-management/`. Tests sit in `tests/`, with fixtures in `tests/fixtures.json` and suite entry points such as `tests/test_risk_management.py`.
+
+### Quick Module Pointers
+- `main.py` ties together backtesting, optimization, visualization, and cache maintenance via the `--mode` flag.
+- `multi_asset_tester.py` runs strategy sweeps per symbol, writing JSON caches under `cache/` and summary CSVs in the repo root.
+- `portfolio_engine.py` composes portfolio-level experiments, while `optimizer.py` drives parameter searches.
+- `risk_managed_strategy.py` is the shared Backtrader base class that injects stops, sizing, and risk telemetry; concrete logic lives in `risk_managed_strategies.py`.
+- `risk_management.py` defines the `RiskManager`, stop-loss logic, and helper monitors that surface heat/drawdown metrics to strategies.
+- `data.py` handles Yahoo Finance ingestion with JSON caching in `data_cache/`.
+- `results_visualizer.py` and ad-hoc scripts like `doge_sma_visualization.py` build Matplotlib/Seaborn charts from cached runs.
+- `docs/risk-management/` documents the risk stack with runnable examples; reference it when adjusting guardrails.
 
 ## Build, Test, and Development Commands
 - `micromamba env create -f environment-simple.yml -y` creates the trading environment locally.

@@ -2,6 +2,8 @@
 
 ## v3.0.0 (Unreleased)
 - Added experimental portfolio mode scaffold with shared CLI flag and Backtrader engine foundation (issue #14)
+- Removed legacy `strategies.py`; all optimizers, CLIs, and fixtures now target the risk-managed strategy set
+- Updated testing/documentation references to reflect risk-managed-only workflows
 
 ## v2.4.1 - Clarify Per-Asset Reporting
 - Documented that optimisation outputs are single-asset simulations, not diversified portfolios

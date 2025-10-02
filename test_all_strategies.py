@@ -6,7 +6,7 @@ Test all fixed strategies with TSLA data to verify they work correctly.
 import backtrader as bt
 import yfinance as yf
 import pandas as pd
-from strategies import STRATEGIES
+from risk_managed_strategies import RISK_MANAGED_STRATEGIES as STRATEGIES
 
 def test_strategy(strategy_class, strategy_name, data, cash=10000):
     """Test a single strategy with given data."""
@@ -23,7 +23,7 @@ def test_strategy(strategy_class, strategy_name, data, cash=10000):
 
     # Add our data and strategy
     cerebro.adddata(data)
-    cerebro.addstrategy(strategy_class)
+    cerebro.addstrategy(strategy_class, enable_risk_logging=False, log_all_signals=False)
 
     # Record starting values
     starting_value = cerebro.broker.getvalue()

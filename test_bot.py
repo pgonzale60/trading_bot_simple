@@ -56,12 +56,12 @@ def test_strategy():
     print("\nTesting strategy...")
 
     try:
-        from strategies import SMAStrategy
+        from risk_managed_strategies import RiskManagedSMAStrategy
         import backtrader as bt
 
         # Create a simple test
         cerebro = bt.Cerebro()
-        cerebro.addstrategy(SMAStrategy)
+        cerebro.addstrategy(RiskManagedSMAStrategy, enable_risk_logging=False, log_all_signals=False)
         print("✓ Strategy setup successful")
     except Exception as e:
         print(f"✗ Strategy test failed: {e}")
