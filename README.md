@@ -25,11 +25,13 @@ micromamba env create -f environment-simple.yml -y
 micromamba run -n trading-bot-simple python main.py --mode optimize --opt-mode multi-symbol --opt-symbols crypto
 micromamba run -n trading-bot-simple python main.py --mode visualize
 micromamba run -n trading-bot-simple python -m trading_bot.top_performer_visualization --report multi_symbol_optimization_all_20251002_194419.json --top-k 3
+micromamba run -n trading-bot-simple python main.py --mode report --opt-symbols all --report-top-k 3
 ```
 
 - Cached market data lives in `data_cache/`. Clear it with `python main.py --clear-data-cache`.
 - Optimiser and tester caches live under `cache/` with per-symbol JSON dumps.
 - Charts drop into `visualizations/` (ignored by git).
+- End-to-end lab reports land in `reports/<timestamp>/` with JSON, Markdown, and charts.
 
 ## Project Layout
 

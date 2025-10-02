@@ -5,6 +5,7 @@
 - Removed legacy `strategies.py`; all optimizers, CLIs, and fixtures now target the risk-managed strategy set
 - Re-organised code into `src/trading_bot`, relocated utility scripts to `scripts/`, and trimmed documentation to concise references
 - Updated testing/documentation references to reflect risk-managed-only workflows
+- Added `main.py --mode report` to orchestrate optimisation, visualisation, and Markdown report generation (writes to `reports/<timestamp>/`)
 
 ## v2.4.1 - Clarify Per-Asset Reporting
 - Documented that optimisation outputs are single-asset simulations, not diversified portfolios

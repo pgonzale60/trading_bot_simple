@@ -270,6 +270,10 @@ class TestParameterOptimizer(unittest.TestCase):
         self.assertEqual(metadata['completed_symbols'], 2)
         self.assertEqual(metadata['total_combinations'], mock_test_params.call_count)
         self.assertTrue(mock_json_dump.called)
+        self.assertEqual(
+            comprehensive['output_file'],
+            'multi_symbol_optimization_all_20250101_120000.json'
+        )
 
     def test_analyze_results(self):
         """Test results analysis."""

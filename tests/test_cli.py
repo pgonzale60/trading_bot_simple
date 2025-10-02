@@ -125,6 +125,22 @@ class TestPortfolioModeFlag(unittest.TestCase):
         self.assertIsNotNone(FakeCerebro.instances[-1].strategy_kwargs)
         self.assertFalse(FakeCerebro.instances[-1].strategy_kwargs['enable_risk_logging'])
 
+    @mock.patch('trading_bot.lab_report.generate_lab_report')
+    def test_report_mode_invokes_lab_report(self, mock_generate_report):
+        parser = main.build_arg_parser()
+        args = parser.parse_args([
+            '--mode', 'report',
+            '--opt-symbols', 'crypto',
+            '--report-risk-profile', 'moderate',
+            '--report-top-k', '2',
+            '--report-min-return', '100',
+            '--reports-dir', 'reports',
+        ])
+
+        main.execute(args)
+
+        mock_generate_report.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()

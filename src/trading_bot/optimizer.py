@@ -492,6 +492,8 @@ class ParameterOptimizer:
         # Display summary
         self._display_multi_symbol_summary(comprehensive_results)
 
+        comprehensive_results["output_file"] = filename
+
         return comprehensive_results
 
     def _analyze_by_strategy(self, comprehensive_results):
