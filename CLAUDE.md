@@ -25,7 +25,7 @@ python main.py --mode visualize                              # Generate charts
 - **main.py**: CLI orchestrator - all modes route through here
 - **optimizer.py**: Parameter optimization (single + multi-symbol comprehensive)
 - **multi_asset_tester.py**: Tests strategies across 41 assets (23 stocks + 18 crypto)
-- **strategies.py**: 7 strategies (SMA, RSI, MACD, Bollinger, EMA, Momentum, BuyHold)
+- **risk_managed_strategies.py**: Risk-managed SMA/RSI/MACD/Bollinger/EMA/Momentum/Buy & Hold
 - **risk_management.py**: Core 2% risk engine - NEVER bypass this
 - **data.py**: Yahoo Finance fetching with caching
 - **results_visualizer.py**: Charts and analysis
@@ -46,14 +46,14 @@ multi_symbol_optimization_crypto_20250925_143022.json   # 18 crypto only
 
 # Single-symbol optimization
 optimization_rsi_AAPL_20200101.csv                      # Single strategy
-optimization_all_strategies_BTC-USD_20200101.csv        # All strategies
+optimization_all_strategies_BTC-USD_20200101.csv        # All risk-managed strategies
 optimization_quick_TSLA_20200101.csv                    # Quick test
 ```
 
 ## Development Guidelines
 - **Test first**: Run `python run_tests.py` before suggesting changes
 - **Risk management**: Never modify risk_management.py without deep understanding
-- **Code style**: Follow existing patterns, especially in strategies.py
+- **Code style**: Follow existing patterns, especially in risk_managed_strategies.py
 - **Symbol handling**: Some symbols may fail (SQ delisted) - system handles gracefully
 - **Performance**: Multi-symbol optimization takes significant time (1000+ backtests)
 

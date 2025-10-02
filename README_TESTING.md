@@ -18,9 +18,10 @@ The testing framework validates the core transformation from dangerous gambling 
 ### 📊 Supporting Tests
 
 **`tests/test_multi_asset_tester.py`** - Multi-asset testing functionality
-**`tests/test_optimizer.py`** - Strategy parameter optimization
-**`tests/test_strategies.py`** - Legacy strategy tests (may have issues)
-**`tests/test_data.py`** - Data fetching tests (some mocking issues)
+**`tests/test_optimizer.py`** - Risk-managed strategy parameter optimization
+**`tests/test_results_visualizer.py`** - Reporting and chart generation
+**`tests/test_portfolio_engine.py`** - Portfolio orchestration scaffolding
+**`tests/test_cli.py`** - Command-line integration guardrails
 
 ## Running Tests
 
@@ -51,9 +52,8 @@ micromamba run -n trading-bot-simple python run_tests.py --list
 - Multi-Asset Tester: 14/14 tests passing
 - Optimizer: 12/12 tests passing
 
-❌ **NON-CRITICAL TESTS WITH ISSUES**
-- Data fetching: 4/12 failing (mocking issues)
-- Legacy strategies: Multiple failures (outdated)
+❌ **WATCH ITEMS**
+- Data ingestion mocks are lightly exercised; extend coverage before major refactors.
 
 ## CI/CD Integration
 

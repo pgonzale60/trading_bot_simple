@@ -26,13 +26,13 @@ def clear_data_cache(cache_dir='data_cache'):
 def run_single_test(symbol, strategy, start_date, cash, use_cache=True, **params):
     """Run a single strategy test (legacy mode)."""
     import backtrader as bt
-    from strategies import STRATEGIES
+    from risk_managed_strategies import RISK_MANAGED_STRATEGIES
     from data import get_stock_data
     from visualization import print_performance_summary
 
-    if strategy not in STRATEGIES:
+    if strategy not in RISK_MANAGED_STRATEGIES:
         print(f"Unknown strategy: {strategy}")
-        print(f"Available strategies: {list(STRATEGIES.keys())}")
+        print(f"Available strategies: {list(RISK_MANAGED_STRATEGIES.keys())}")
         return
 
     print(f"\nTesting {strategy.upper()} strategy on {symbol}")
@@ -45,7 +45,9 @@ def run_single_test(symbol, strategy, start_date, cash, use_cache=True, **params
 
         # Set up backtest
         cerebro = bt.Cerebro()
-        cerebro.addstrategy(STRATEGIES[strategy], **params)
+        params.setdefault('enable_risk_logging', False)
+        params.setdefault('log_all_signals', False)
+        cerebro.addstrategy(RISK_MANAGED_STRATEGIES[strategy], **params)
         cerebro.adddata(data)
         cerebro.broker.setcash(cash)
         cerebro.broker.setcommission(commission=0.001)

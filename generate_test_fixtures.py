@@ -9,10 +9,18 @@ import json
 import numpy as np
 import pandas as pd
 import backtrader as bt
-from strategies import SMAStrategy, RSIStrategy, MACDStrategy, BollingerBandsStrategy, BuyAndHoldStrategy
+import warnings
+
 from optimizer import ParameterOptimizer
 from multi_asset_tester import MultiAssetTester
-import warnings
+from risk_managed_strategies import (
+    RiskManagedSMAStrategy,
+    RiskManagedRSIStrategy,
+    RiskManagedMACDStrategy,
+    RiskManagedBollingerBandsStrategy,
+    RiskManagedBuyAndHoldStrategy,
+)
+
 warnings.filterwarnings('ignore')
 
 
@@ -78,6 +86,8 @@ def run_strategy_test(strategy_class, data, **params):
     np.random.seed(42)  # Ensure deterministic behavior
 
     cerebro = bt.Cerebro()
+    params.setdefault('enable_risk_logging', False)
+    params.setdefault('log_all_signals', False)
     cerebro.addstrategy(strategy_class, **params)
 
     # Convert pandas DataFrame to Backtrader data feed
@@ -122,32 +132,32 @@ def generate_fixtures():
     print("Generating strategy test fixtures...")
 
     # Test SMA Strategy on trending data
-    sma_trending = run_strategy_test(SMAStrategy, trending_data, short_period=10, long_period=30)
+    sma_trending = run_strategy_test(RiskManagedSMAStrategy, trending_data, short_period=10, long_period=30)
     fixtures['sma_trending'] = sma_trending
     print(f"SMA Trending: {sma_trending}")
 
     # Test SMA Strategy on sideways data
-    sma_sideways = run_strategy_test(SMAStrategy, sideways_data, short_period=10, long_period=30)
+    sma_sideways = run_strategy_test(RiskManagedSMAStrategy, sideways_data, short_period=10, long_period=30)
     fixtures['sma_sideways'] = sma_sideways
     print(f"SMA Sideways: {sma_sideways}")
 
     # Test RSI Strategy
-    rsi_sideways = run_strategy_test(RSIStrategy, sideways_data, rsi_period=14, rsi_low=30, rsi_high=70)
+    rsi_sideways = run_strategy_test(RiskManagedRSIStrategy, sideways_data, rsi_period=14, rsi_low=30, rsi_high=70)
     fixtures['rsi_sideways'] = rsi_sideways
     print(f"RSI Sideways: {rsi_sideways}")
 
     # Test MACD Strategy
-    macd_trending = run_strategy_test(MACDStrategy, trending_data, fast_ema=12, slow_ema=26, signal_ema=9)
+    macd_trending = run_strategy_test(RiskManagedMACDStrategy, trending_data, fast_ema=12, slow_ema=26, signal_ema=9)
     fixtures['macd_trending'] = macd_trending
     print(f"MACD Trending: {macd_trending}")
 
     # Test Bollinger Bands Strategy
-    bb_trending = run_strategy_test(BollingerBandsStrategy, trending_data, period=20, devfactor=2.0)
+    bb_trending = run_strategy_test(RiskManagedBollingerBandsStrategy, trending_data, period=20, devfactor=2.0)
     fixtures['bollinger_bands_trending'] = bb_trending
     print(f"Bollinger Bands: {bb_trending}")
 
     # Test Buy and Hold Strategy
-    buy_hold_trending = run_strategy_test(BuyAndHoldStrategy, trending_data)
+    buy_hold_trending = run_strategy_test(RiskManagedBuyAndHoldStrategy, trending_data)
     fixtures['buy_and_hold_trending'] = buy_hold_trending
     print(f"Buy and Hold: {buy_hold_trending}")
 
@@ -182,7 +192,7 @@ def generate_fixtures():
     print("\\nGenerating performance metrics fixture...")
     performance_data = MockData.create_trending_data(days=252, trend=0.0005, seed=42)
     sma_perf_result = run_strategy_test(
-        SMAStrategy,
+        RiskManagedSMAStrategy,
         performance_data,
         short_period=5,
         long_period=20

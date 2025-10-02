@@ -12,11 +12,19 @@ import numpy as np
 import json
 import os
 from datetime import datetime
+from enum import Enum
 from itertools import product
+from typing import Dict, Iterable
+
 from data import get_stock_data
-from strategies import STRATEGIES, get_strategy_params
 from multi_asset_tester import MultiAssetTester
+from risk_management import RiskLevel, StopLossMethod
+from risk_managed_strategies import (
+    RISK_MANAGED_STRATEGIES as STRATEGIES,
+    get_risk_managed_strategy_params as get_strategy_params,
+)
 import warnings
+
 warnings.filterwarnings('ignore')
 
 
@@ -29,6 +37,46 @@ class ParameterOptimizer:
         self.cash = cash
         self.results = []
         self.data = None
+
+    @staticmethod
+    def _sanitize_param_value(value):
+        """Convert Enum and other non-JSON safe values to human strings."""
+        if isinstance(value, Enum):
+            return value.name.lower()
+        return value
+
+    @classmethod
+    def _sanitize_params(cls, params: Dict[str, object]) -> Dict[str, object]:
+        """Return parameters with JSON-serialisable values."""
+        return {key: cls._sanitize_param_value(val) for key, val in params.items()}
+
+    @classmethod
+    def _format_params(cls, strategy_name: str, params: Dict[str, object]) -> str:
+        """Build a readable parameter summary string."""
+        if not params:
+            return f"{strategy_name.upper()}(default)"
+
+        parts = [f"{key}={cls._sanitize_param_value(val)}" for key, val in params.items()]
+        return f"{strategy_name.upper()}({', '.join(parts)})"
+
+    @staticmethod
+    def _coerce_param_value_for_strategy(key: str, value: object) -> object:
+        """Ensure params passed into strategies use the expected enum types."""
+        if key == 'risk_profile':
+            if isinstance(value, RiskLevel):
+                return value
+            if isinstance(value, str):
+                normalized = value.replace('RiskLevel.', '').strip().upper()
+                if normalized in RiskLevel.__members__:
+                    return RiskLevel[normalized]
+        if key == 'stop_loss_method':
+            if isinstance(value, StopLossMethod):
+                return value
+            if isinstance(value, str):
+                normalized = value.replace('StopLossMethod.', '').strip().upper()
+                if normalized in StopLossMethod.__members__:
+                    return StopLossMethod[normalized]
+        return value
 
     def load_data(self):
         """Load stock data for backtesting."""
@@ -82,13 +130,19 @@ class ParameterOptimizer:
                 if params_dict['short_period'] >= params_dict['long_period']:
                     continue
 
-            print(f"Testing {i}/{total_tests}: {strategy_name.upper()}({params_dict})", end="")
+            run_params = {
+                key: self._coerce_param_value_for_strategy(key, value)
+                for key, value in params_dict.items()
+            }
+            param_label = self._format_params(strategy_name, run_params)
+            print(f"Testing {i}/{total_tests}: {param_label}", end="")
 
             try:
-                result = self._run_backtest(strategy_class, **params_dict)
+                result = self._run_backtest(strategy_class, **run_params)
                 result['strategy'] = strategy_name.upper()
-                result.update(params_dict)
-                result['params'] = f"{strategy_name.upper()}({params_dict})"
+                sanitized = self._sanitize_params(run_params)
+                result.update(sanitized)
+                result['params'] = param_label
                 results.append(result)
                 print(f" → Return: {result['return_pct']:.2f}%")
             except Exception as e:
@@ -113,6 +167,8 @@ class ParameterOptimizer:
     def _run_backtest(self, strategy_class, **kwargs):
         """Run a single backtest with given parameters."""
         cerebro = bt.Cerebro()
+        kwargs.setdefault('enable_risk_logging', False)
+        kwargs.setdefault('log_all_signals', False)
         cerebro.addstrategy(strategy_class, **kwargs)
         cerebro.adddata(self.data)
         cerebro.broker.setcash(self.cash)

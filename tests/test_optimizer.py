@@ -99,8 +99,8 @@ class TestParameterOptimizer(unittest.TestCase):
             mock_cerebro.run.return_value = [mock_result]
 
             # Test backtest execution
-            from strategies import SMAStrategy
-            result = self.optimizer._run_backtest(SMAStrategy, short_period=10, long_period=30)
+            from risk_managed_strategies import RiskManagedSMAStrategy
+            result = self.optimizer._run_backtest(RiskManagedSMAStrategy, short_period=10, long_period=30)
 
             # Verify result structure
             self.assertIsInstance(result, dict)
